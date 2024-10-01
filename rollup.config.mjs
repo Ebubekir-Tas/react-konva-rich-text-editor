@@ -9,7 +9,7 @@ import svgr from '@svgr/rollup';
 import pkg from './package.json' assert { type: 'json' };
 
 export default {
-  input: 'src/index.tsx', 
+  input: 'src/index.ts', 
   output: [
     {
       file: pkg.main,
@@ -46,5 +46,10 @@ export default {
     }),
     svgr(),
   ],
-  external: ['react', 'react-dom', 'react-konva'],
+  external: [
+    'react',
+    'react-dom',
+    'react-konva',
+    'konva'
+  ],
 };
