@@ -24,18 +24,14 @@ export const extensions = [
   History,
 ];
 
+
 export const defaultToolbarOptions = [
-	"document",
-	"paragraph",
-	"text",
-	"bold",
-	"underline",
-	"italic",
-	"strike",
-	"color",
-	"textStyle",
-	"fontFamily",
-	"undo",
-	"redo",
-  "history",
+  'undo',
+  'redo',
+  'bold',
+  'underline',
+  'italic',
+  'strike',
+  'fontFamily',
+  'color',
 ];

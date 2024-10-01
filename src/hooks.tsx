@@ -11,6 +11,7 @@ interface UseRichTextEditorProps {
   width?: number;
   height?: number;
   toolbarOptions?: string[];
+  onUpdate?: ({ editor }: { editor: Editor }) => void;
 }
 
 export function useRichTextEditor(props: UseRichTextEditorProps) {
@@ -22,11 +23,13 @@ export function useRichTextEditor(props: UseRichTextEditorProps) {
     width = 360,
     height = 720,
     toolbarOptions,
+    onUpdate,
   } = props;
 
   const editor = useEditor({
     extensions: extensions,
     content: text,
+    onUpdate: onUpdate || undefined,
   });
 
   const options = toolbarOptions || defaultToolbarOptions;

@@ -1,8 +1,8 @@
 import React, { useEffect, CSSProperties } from "react";
 import { EditorContent } from "@tiptap/react";
-import "./styles.css";
 import Toolbar from "./Toolbar";
 import { useRichTextEditor } from "../hooks";
+import "../styles.css";
 
 interface InternalEditorProps {
 	text: string;

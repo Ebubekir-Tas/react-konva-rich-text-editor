@@ -2,16 +2,17 @@ import React, { useCallback } from "react";
 import { BubbleMenu, Editor } from "@tiptap/react";
 import classNames from "classnames";
 import * as Icons from "../icons";
+import { defaultToolbarOptions } from "../constants";
 
 interface ToolbarProps {
 	editor: Editor;
-	options: string[];
+	options?: string[];
 	setBubbleMenuElement: (element: HTMLElement) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
 	editor,
-	options,
+	options = defaultToolbarOptions,
 	setBubbleMenuElement,
 }) => {
 	const toggleBold = useCallback(() => {

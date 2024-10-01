@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Image } from "react-konva";
+import { Image as KonvaImageType } from "konva/lib/shapes/Image";
 
 import { ImageConfig } from "konva/lib/shapes/Image";
 
@@ -11,7 +12,7 @@ export const KonvaImage: React.FC<KonvaImageProps> = ({
 	svgImage,
 	...props
 }) => {
-	const imageRef = useRef<any>(null);
+	const imageRef = useRef<KonvaImageType>(null);
 
 	const loadImage = (
 		url: string,
