@@ -1,0 +1,61 @@
+{
+  "name": "react-konva-rich-text-editor",
+  "version": "1.0.0",
+  "description": "React Konva WYSIWYG rich text editor",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "prepare": "npm run build",
+    "test": "your-test-script",
+    "lint": "eslint src"
+  },
+  "keywords": [
+    "react",
+    "konva",
+    "rich",
+    "text",
+    "editor",
+    "WYSIWYG",
+    "react-konva",
+    "rich-text",
+    "rich-text-editor"
+  ],
+  "author": "ebubekir-tas",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.0",
+    "@rollup/plugin-image": "^3.0.3",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@rollup/plugin-url": "^8.0.2",
+    "@svgr/rollup": "^8.1.0",
+    "rollup": "^4.22.5",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@tiptap/extension-bold": "^2.8.0",
+    "@tiptap/extension-color": "^2.8.0",
+    "@tiptap/extension-document": "^2.8.0",
+    "@tiptap/extension-font-family": "^2.8.0",
+    "@tiptap/extension-history": "^2.8.0",
+    "@tiptap/extension-italic": "^2.8.0",
+    "@tiptap/extension-paragraph": "^2.8.0",
+    "@tiptap/extension-strike": "^2.8.0",
+    "@tiptap/extension-text": "^2.8.0",
+    "@tiptap/extension-text-style": "^2.8.0",
+    "@tiptap/extension-underline": "^2.8.0",
+    "@tiptap/react": "^2.8.0",
+    "classnames": "^2.5.1",
+    "react": "^18.3.1",
+    "react-konva": "^18.2.10"
+  }
+}
