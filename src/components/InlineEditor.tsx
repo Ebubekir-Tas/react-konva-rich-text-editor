@@ -2,7 +2,6 @@ import React, { useEffect, useRef, CSSProperties } from 'react';
 import { EditorContent } from '@tiptap/react';
 import Toolbar from './Toolbar';
 import { useRichTextEditor } from '../hooks';
-import '../styles.css';
 
 interface InlineEditorProps {
   text: string;

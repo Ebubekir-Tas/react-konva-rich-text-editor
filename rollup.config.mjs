@@ -7,9 +7,10 @@ import image from '@rollup/plugin-image';
 import url from '@rollup/plugin-url';
 import svgr from '@svgr/rollup';
 import pkg from './package.json' assert { type: 'json' };
+import postcssImport from 'postcss-import';
 
 export default {
-  input: 'src/index.ts', 
+  input: 'src/index.ts',
   output: [
     {
       file: pkg.main,
@@ -35,9 +36,12 @@ export default {
     }),
     postcss({
       extensions: ['.css'],
-      extract: true,
+      extract: 'styles.css',
       minimize: true,
-      modules: true,
+      modules: false,
+      plugins: [
+        postcssImport(),
+      ],
     }),
     image(),
     url({

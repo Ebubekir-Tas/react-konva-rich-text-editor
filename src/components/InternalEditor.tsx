@@ -1,74 +1,102 @@
-import React, { useEffect, CSSProperties } from "react";
-import { EditorContent } from "@tiptap/react";
-import Toolbar from "./Toolbar";
-import { useRichTextEditor } from "../hooks";
-import "../styles.css";
+import React, { useEffect } from 'react';
+import { EditorContent } from '@tiptap/react';
+import Toolbar from './Toolbar';
+import { useRichTextEditor } from '../hooks';
 
 interface InternalEditorProps {
-	text: string;
-	setText: (value: string) => void;
-	setSvgImage: (url: string) => void;
-	fontSize: number;
-	width?: number;
-	height?: number;
-	style?: CSSProperties;
-	isEditing: boolean;
-	setIsEditing: (value: boolean) => void;
-	toolbarOptions?: string[];
+  text: string;
+  setText: (value: string) => void;
+  setSvgImage: (url: string) => void;
+  isEditing: boolean;
+  setIsEditing: (value: boolean) => void;
+  editorPosition: { x: number; y: number };
+  fontSize?: number;
+  width?: number;
+  height?: number;
+  style?: React.CSSProperties;
+  toolbarOptions?: string[];
 }
 
 export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
-	const { text, setText, setSvgImage, style, isEditing, setIsEditing } = props;
+  const {
+    text,
+    setText,
+    setSvgImage,
+    isEditing,
+    setIsEditing,
+    editorPosition,
+    fontSize = 16,
+    width = 360,
+    height = 720,
+    style,
+    toolbarOptions,
+  } = props;
 
-	const {
-		editor,
-		editorRef,
-		bubbleMenuRef,
-		setBubbleMenuElement,
-		options,
-		updateSvg,
-	} = useRichTextEditor(props);
+  const {
+    editor,
+    editorRef,
+    bubbleMenuRef,
+    setBubbleMenuElement,
+    options,
+    updateSvg,
+  } = useRichTextEditor({
+    text,
+    setText,
+    setSvgImage,
+    fontSize,
+    width,
+    height,
+    toolbarOptions,
+  });
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				editorRef.current &&
-				!editorRef.current.contains(event.target as Node) &&
-				bubbleMenuRef.current &&
-				!bubbleMenuRef.current.contains(event.target as Node)
-			) {
-				setIsEditing(false);
-				setText(text);
-				const svgUrl = updateSvg(text);
-				setSvgImage(svgUrl);
-			}
-		};
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+				editor &&
+        editorRef.current &&
+        !editorRef.current.contains(event.target as Node) &&
+        (!bubbleMenuRef.current || !bubbleMenuRef.current.contains(event.target as Node))
+      ) {
+        setIsEditing(false);
+        const updatedText = editor.getHTML();
+        setText(updatedText);
+        const svgUrl = updateSvg(updatedText);
+        setSvgImage(svgUrl);
+      }
+    };
 
-		if (isEditing) {
-			document.addEventListener("mousedown", handleClickOutside);
-		} else {
-			document.removeEventListener("mousedown", handleClickOutside);
-		}
+    if (isEditing) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
 
-		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
-		};
-	}, [isEditing, text, updateSvg, setIsEditing, setSvgImage, setText]);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditing, editor, setIsEditing, setText, updateSvg, setSvgImage]);
 
-	if (!editor) {
-		return null;
-	}
+  if (!isEditing || !editor) {
+    return null;
+  }
 
-	return (
-		<div ref={editorRef} style={style}>
-			<Toolbar
-				editor={editor}
-				options={options}
-				setBubbleMenuElement={setBubbleMenuElement}
-			/>
-			{!editor.isDestroyed && (
-				<EditorContent className="editor-content" editor={editor} />
-			)}
-		</div>
-	);
+  return (
+    <div
+      ref={editorRef}
+      style={{
+        position: 'absolute',
+        top: editorPosition.y,
+        left: editorPosition.x,
+        zIndex: 9999,
+        ...style,
+      }}
+    >
+      <Toolbar
+        editor={editor}
+        options={options}
+        setBubbleMenuElement={setBubbleMenuElement}
+      />
+      {!editor.isDestroyed && (
+        <EditorContent className="editor-content" editor={editor} />
+      )}
+    </div>
+  );
 };

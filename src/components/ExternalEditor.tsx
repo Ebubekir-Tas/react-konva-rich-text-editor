@@ -2,7 +2,6 @@ import React from 'react';
 import { EditorContent } from '@tiptap/react';
 import { useRichTextEditor } from '../hooks';
 import Toolbar from './Toolbar';
-import "../styles.css";
 
 interface ExternalEditorProps {
   text: string;

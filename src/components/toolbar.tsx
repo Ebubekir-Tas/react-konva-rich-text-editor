@@ -3,6 +3,7 @@ import { BubbleMenu, Editor } from "@tiptap/react";
 import classNames from "classnames";
 import * as Icons from "../icons";
 import { defaultToolbarOptions } from "../constants";
+import "./styles.css";
 
 interface ToolbarProps {
 	editor: Editor;
@@ -48,7 +49,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
 		undo: (
 			<button
 				key="undo"
-				style={{ background: "black" }}
 				className="menu-button"
 				onClick={() => editor.chain().focus().undo().run()}
 				disabled={!editor.can().undo()}
@@ -136,6 +136,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
 				type="color"
 				onChange={toggleColor}
 				className="menu-button"
+				style={{
+					display: 'inline-flex'
+				}}
 			/>
 		),
 	};
@@ -152,14 +155,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
 				},
 			}}
 		>
-			{options.map((option) => {
-				const button = buttonComponents[option];
-				if (!button) {
-					console.warn(`Invalid toolbar option: ${option}`);
-					return null;
-				}
-				return button;
-			})}
+				{options.map((option) => {
+					const button = buttonComponents[option];
+					if (!button) {
+						console.warn(`Invalid toolbar option: ${option}`);
+						return null;
+					}
+					return button;
+				})}
 		</BubbleMenu>
 	);
 };
