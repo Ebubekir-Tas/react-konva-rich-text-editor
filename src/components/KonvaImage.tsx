@@ -1,52 +1,136 @@
-import { useRef, useEffect, forwardRef } from "react";
-import { Image } from "react-konva";
+import { useRef, useState, useEffect } from "react";
+import { Image as KonvaImage } from "react-konva";
 import { Image as KonvaImageType } from "konva/lib/shapes/Image";
 import { ImageConfig } from "konva/lib/shapes/Image";
 
-interface KonvaImageProps extends Omit<ImageConfig, 'image'> {
-  svgImage: string;
+interface EditorEl {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	open: boolean;
 }
 
-export const KonvaImage: React.FC<KonvaImageProps> = ({
-  svgImage,
-  onEditStart,
-  ...restProps
+interface KonvaImageProps extends ImageConfig {
+	svgImage: string;
+	setEditorEl: React.Dispatch<React.SetStateAction<EditorEl>>;
+	imageRef: React.RefObject<KonvaImageType>;
+	setKonvaImageNode?: (node: KonvaImageType) => void;
+	handleDblClick: (event?: any) => void;
+}
+
+export const BaseImage: React.FC<KonvaImageProps> = ({
+	svgImage,
+	handleDblClick,
+	setKonvaImageNode,
+	...restProps
 }) => {
-  const imageRef = useRef<KonvaImageType>(null);
+	const internalImageRef = useRef<KonvaImageType | null>(null);
 
-  useEffect(() => {
-    if (svgImage) {
-      const img = new window.Image();
-      img.src = svgImage;
-      img.onload = () => {
-        if (imageRef.current) {
-          imageRef.current.image(img);
-          imageRef.current.getLayer()?.batchDraw();
-        }
-      };
-      img.onerror = () => {
-        console.error('Failed to load image:', svgImage);
-      };
-    }
-  }, [svgImage]);
+	useEffect(() => {
+		if (svgImage) {
+			const img = new window.Image();
+			img.src = svgImage;
+			img.onload = () => {
+				if (internalImageRef.current) {
+					internalImageRef.current.image(img);
+					internalImageRef.current.getLayer()?.batchDraw();
+				}
+			};
+			img.onerror = () => {
+				console.error("Failed to load image:", svgImage);
+			};
+		} else if (internalImageRef.current) {
+			internalImageRef.current.image(undefined);
+			internalImageRef.current.getLayer()?.batchDraw();
+		}
+	}, [svgImage]);
 
-  const handleDblClick = (event: any) => {
-    const stage = event.target.getStage();
-    const pointerPosition = stage.getPointerPosition();
-
-    const containerRect = stage.container().getBoundingClientRect();
-    const x = containerRect.left + pointerPosition.x;
-    const y = containerRect.top + pointerPosition.y;
-
-    onEditStart({ x, y });
-  };
-
-  return (
-    <Image
-      ref={imageRef}
-			image={undefined}
-      onDblClick={handleDblClick}
-      {...restProps}
-    />
-  );
+	return (
+		<KonvaImage
+			ref={(node) => {
+				internalImageRef.current = node;
+				if (node) {
+					setKonvaImageNode?.(node);
+				}
+			}}
+			onDblClick={handleDblClick}
+			{...restProps}
+		/>
+	);
 };
+
+const InlineImage: React.FC<KonvaImageProps> = (props) => {
+	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(
+		null
+	);
+
+	const inlineDblClick = () => {
+		if (!konvaImageNode) {
+			console.error("konvaImageNode is null");
+			return;
+		}
+
+		const stage = konvaImageNode.getStage();
+		if (!stage) {
+			console.error("Stage is null");
+			return;
+		}
+
+		console.log("imgnode", konvaImageNode);
+		console.log("stage", stage);
+
+		const imagePosition = konvaImageNode.absolutePosition();
+		const imageSize = {
+			width: konvaImageNode.width(),
+			height: konvaImageNode.height(),
+		};
+
+		const containerRect = stage.container().getBoundingClientRect();
+		const x = containerRect.left + imagePosition.x;
+		const y = containerRect.top + imagePosition.y;
+
+		props.setEditorEl((prev) => ({
+			...prev,
+			x,
+			y,
+			open: true,
+			...imageSize,
+		}));
+	};
+
+	return !props.editorEl.open ? (
+		<BaseImage
+			{...props}
+			setKonvaImageNode={setKonvaImageNode}
+			handleDblClick={inlineDblClick}
+		/>
+	) : (
+		<></>
+	);
+};
+
+const InternalImage: React.FC<KonvaImageProps> = (props) => {
+	const imageRef = useRef(null);
+	const internalDblClick = () => {
+		props.setEditorEl((prev) => ({
+			...prev,
+			open: true,
+		}));
+	};
+
+	return (
+		<BaseImage
+			{...props}
+			imageRef={imageRef}
+			handleDblClick={internalDblClick}
+		/>
+	);
+};
+
+const Image = {
+	Inline: InlineImage,
+	Internal: InternalImage,
+};
+
+export default Image;

@@ -1,93 +1,227 @@
-import React, { useEffect, useRef, CSSProperties } from 'react';
-import { EditorContent } from '@tiptap/react';
-import Toolbar from './Toolbar';
-import { useRichTextEditor } from '../hooks';
+import React, {
+	useState,
+	useEffect,
+	useCallback,
+	useRef,
+	CSSProperties,
+	Dispatch,
+	SetStateAction,
+} from "react";
+import { EditorContent, useEditor, Editor } from "@tiptap/react";
+import Toolbar from "./Toolbar";
+import {
+	extensions,
+	defaultToolbarOptions,
+	CustomParagraph,
+} from "../constants";
+
+interface EditorEl {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	open: boolean;
+	fontSize: number;
+}
 
 interface InlineEditorProps {
-  text: string;
-  setText: (value: string) => void;
-  setSvgImage: (url: string) => void;
-  fontSize: number;
-  width?: number;
-  height?: number;
-  style?: CSSProperties;
-  isEditing: boolean;
-  setIsEditing: (value: boolean) => void;
-  toolbarOptions?: string[];
+	initialText: string;
+	setText: (value: string) => void;
+	setSvgImage: Dispatch<SetStateAction<string>>;
+	style?: CSSProperties;
+	isEditing: boolean;
+	setIsEditing: (value: boolean) => void;
+	toolbarOptions?: string[];
+	editorEl: EditorEl;
+	setEditorEl: Dispatch<SetStateAction<EditorEl>>;
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
-  const {
-    text,
-    setText,
-    setSvgImage,
-    style,
-    isEditing,
-    setIsEditing,
-  } = props;
+	const {
+		initialText,
+		setSvgImage,
+		style,
+		toolbarOptions,
+		editorEl,
+		setEditorEl,
+	} = props;
 
-  const {
-    editor,
-    editorRef,
-    bubbleMenuRef,
-    setBubbleMenuElement,
-    options,
-    updateSvg,
-  } = useRichTextEditor({
-      ...props,
-      onUpdate: ({ editor }) => {
-        if (isFirstUpdate.current) {
-          isFirstUpdate.current = false;
-          return;
-        }
-        const svgUrl = updateSvg(editor.getHTML());
-        setText(editor.getHTML());
-        setSvgImage(svgUrl);
-      },
-    });
+	const [text, setText] = useState(initialText);
+	const options = toolbarOptions || defaultToolbarOptions;
 
-  const isFirstUpdate = useRef(true);
+	console.log("editor el", editorEl);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        editorRef.current &&
-        !editorRef.current.contains(event.target as Node) &&
-        bubbleMenuRef.current &&
-        !bubbleMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsEditing(false);
-        setText(text);
-        const svgUrl = updateSvg(text);
-        setSvgImage(svgUrl);
-      }
-    };
+	const previousSvgUrlRef = useRef<string | null>(null);
 
-    if (isEditing) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
+	const updateSvg = useCallback(
+		(html: string): string => {
+			if (previousSvgUrlRef.current) {
+				URL.revokeObjectURL(previousSvgUrlRef.current);
+			}
+			const svgString = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${editorEl.width}" height="${editorEl.height}" viewBox="0 0 ${editorEl.width} ${editorEl.height}" preserveAspectRatio="none">
+          <foreignObject width="100%" height="100%">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="
+            font-size: ${editorEl.fontSize}px;
+            color: black;
+            width: ${editorEl.width}px;
+            height: ${editorEl.height}px;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          ">
+          <style>
+            p { margin: 0; }
+              </style>  
+              ${html}
+            </div>
+          </foreignObject>
+        </svg>`;
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isEditing, text, updateSvg, setIsEditing, setSvgImage, setText]);
+			const svgBlob = new Blob([svgString], {
+				type: "image/svg+xml;charset=utf-8",
+			});
+			const newSvgUrl = URL.createObjectURL(svgBlob);
 
-  if (!editor) {
-    return null;
-  }
+			previousSvgUrlRef.current = newSvgUrl;
 
-  return (
-    <div ref={editorRef} style={style}>
-      <Toolbar
-        editor={editor}
-        options={options}
-        setBubbleMenuElement={setBubbleMenuElement}
-      />
-      {!editor.isDestroyed && (
-        <EditorContent className="editor-content" editor={editor} />
-      )}
-    </div>
-  );
+			return newSvgUrl;
+		},
+		[editorEl]
+	);
+
+	useEffect(() => {
+		return () => {
+			if (previousSvgUrlRef.current) {
+				URL.revokeObjectURL(previousSvgUrlRef.current);
+			}
+		};
+	}, []);
+
+	const isFirstUpdate = useRef(true);
+
+	const editor = useEditor({
+		extensions: [...extensions, CustomParagraph],
+		content: text,
+		onUpdate: ({ editor }) => {
+			if (isFirstUpdate.current) {
+				isFirstUpdate.current = false;
+				return;
+			}
+			const svgUrl = updateSvg(editor.getHTML());
+			setText(editor.getHTML());
+			setSvgImage(svgUrl);
+		},
+	});
+
+	const editorRef = useRef<HTMLDivElement | null>(null);
+	const bubbleMenuRef = useRef<HTMLElement | null>(null);
+	const [loaded, setLoaded] = useState(false);
+
+	useEffect(() => {
+		if (editor) {
+			if (!loaded) {
+				const svgUrl = updateSvg(editor.getHTML());
+				setSvgImage(svgUrl);
+				setLoaded(true);
+			}
+
+			const handleUpdate = ({ editor }: { editor: Editor }) => {
+				const updatedText = editor.getHTML();
+				setText(updatedText);
+				const svgUrl = updateSvg(updatedText);
+				setSvgImage(svgUrl);
+			};
+
+			editor.on("update", handleUpdate);
+			return () => {
+				editor.off("update", handleUpdate);
+			};
+		}
+	}, [editor, setSvgImage, updateSvg, loaded]);
+
+	const setBubbleMenuElement = (element: HTMLElement) => {
+		bubbleMenuRef.current = element;
+	};
+
+	const [editorRefReady, setEditorRefReady] = useState(false);
+
+	useEffect(() => {
+		if (editorEl.open && editorRefReady) {
+			const handleClickOutside = (event: MouseEvent) => {
+				if (
+					editorRef.current &&
+					!editorRef.current.contains(event.target as Node) &&
+					(!bubbleMenuRef.current ||
+						!bubbleMenuRef.current.contains(event.target as Node))
+				) {
+					setEditorEl((prev) => ({ ...prev, open: false }));
+					if (editor) {
+						const updatedText = editor.getHTML();
+						setText(updatedText);
+						const svgUrl = updateSvg(updatedText);
+						setSvgImage(svgUrl);
+					}
+				}
+			};
+
+			document.addEventListener("mousedown", handleClickOutside);
+
+			return () => {
+				document.removeEventListener("mousedown", handleClickOutside);
+			};
+		}
+	}, [
+		editorEl.open,
+		editorRefReady,
+		editor,
+		setEditorEl,
+		setSvgImage,
+		updateSvg,
+	]);
+
+	if (!editorEl.open || !editor) {
+		return null;
+	}
+
+	return (
+		<div
+			ref={(node) => {
+				editorRef.current = node;
+				if (node) {
+					setEditorRefReady(true);
+				} else {
+					setEditorRefReady(false);
+				}
+			}}
+			style={{
+				...style,
+				top: editorEl.y,
+				left: editorEl.x,
+				width: editorEl.width,
+				height: editorEl.height,
+				zIndex: 1000,
+				position: "absolute",
+			}}
+		>
+			<Toolbar
+				editor={editor}
+				options={options}
+				setBubbleMenuElement={setBubbleMenuElement}
+			/>
+			{!editor.isDestroyed && (
+				<EditorContent
+					editor={editor}
+					style={{
+						fontSize: `${editorEl.fontSize}px`,
+						margin: 0,
+						padding: 0,
+						boxSizing: "border-box",
+						width: "100%",
+						height: "100%",
+					}}
+				/>
+			)}
+		</div>
+	);
 };

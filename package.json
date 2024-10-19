@@ -41,6 +41,7 @@
     "@rollup/plugin-typescript": "^12.1.0",
     "@rollup/plugin-url": "^8.0.2",
     "@svgr/rollup": "^8.1.0",
+    "@types/react-dom": "^18.3.0",
     "postcss-import": "^16.1.0",
     "rollup": "^4.22.5",
     "rollup-plugin-peer-deps-external": "^2.2.4",

@@ -38,7 +38,7 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
         setBubbleMenuElement={setBubbleMenuElement}
       />
       {!editor.isDestroyed && (
-        <EditorContent className="editor-content" editor={editor} />
+        <EditorContent editor={editor} />
       )}
     </div>
   );

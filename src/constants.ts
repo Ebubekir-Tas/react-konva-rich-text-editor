@@ -10,9 +10,23 @@ import Color from "@tiptap/extension-color";
 import TextStyle from "@tiptap/extension-text-style";
 import History from '@tiptap/extension-history';
 
+export const CustomParagraph = Paragraph.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: 'margin: 0;',
+        parseHTML: element => element.getAttribute('style'),
+        renderHTML: attributes => {
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+});
+
 export const extensions = [
 	Document,
-	Paragraph,
 	Text,
 	Bold,
 	Underline,
