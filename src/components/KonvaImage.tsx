@@ -9,17 +9,16 @@ interface EditorEl {
 	width: number;
 	height: number;
 	open: boolean;
+	fontSize?: number;
 }
 
-interface KonvaImageProps extends ImageConfig {
+interface BaseImageProps extends ImageConfig {
 	svgImage: string;
-	setEditorEl: React.Dispatch<React.SetStateAction<EditorEl>>;
-	imageRef: React.RefObject<KonvaImageType>;
+	handleDblClick?: (event?: any) => void;
 	setKonvaImageNode?: (node: KonvaImageType) => void;
-	handleDblClick: (event?: any) => void;
 }
 
-export const BaseImage: React.FC<KonvaImageProps> = ({
+const BaseImage: React.FC<BaseImageProps> = ({
 	svgImage,
 	handleDblClick,
 	setKonvaImageNode,
@@ -60,7 +59,13 @@ export const BaseImage: React.FC<KonvaImageProps> = ({
 	);
 };
 
-const InlineImage: React.FC<KonvaImageProps> = (props) => {
+interface InlineImageProps extends BaseImageProps {
+	editorEl: EditorEl;
+	setEditorEl: React.Dispatch<React.SetStateAction<EditorEl>>;
+}
+
+const InlineImage: React.FC<InlineImageProps> = (props) => {
+	const { editorEl, setEditorEl } = props;
 	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(
 		null
 	);
@@ -77,9 +82,6 @@ const InlineImage: React.FC<KonvaImageProps> = (props) => {
 			return;
 		}
 
-		console.log("imgnode", konvaImageNode);
-		console.log("stage", stage);
-
 		const imagePosition = konvaImageNode.absolutePosition();
 		const imageSize = {
 			width: konvaImageNode.width(),
@@ -90,7 +92,7 @@ const InlineImage: React.FC<KonvaImageProps> = (props) => {
 		const x = containerRect.left + imagePosition.x;
 		const y = containerRect.top + imagePosition.y;
 
-		props.setEditorEl((prev) => ({
+		setEditorEl((prev) => ({
 			...prev,
 			x,
 			y,
@@ -99,7 +101,7 @@ const InlineImage: React.FC<KonvaImageProps> = (props) => {
 		}));
 	};
 
-	return !props.editorEl.open ? (
+	return editorEl.open ? (
 		<BaseImage
 			{...props}
 			setKonvaImageNode={setKonvaImageNode}
@@ -110,10 +112,16 @@ const InlineImage: React.FC<KonvaImageProps> = (props) => {
 	);
 };
 
-const InternalImage: React.FC<KonvaImageProps> = (props) => {
+interface InternalImageProps extends BaseImageProps {
+	editorEl: EditorEl;
+	setEditorEl: React.Dispatch<React.SetStateAction<EditorEl>>;
+}
+const InternalImage: React.FC<InternalImageProps> = (props) => {
+	const { setEditorEl } = props;
+
 	const imageRef = useRef(null);
 	const internalDblClick = () => {
-		props.setEditorEl((prev) => ({
+		setEditorEl((prev) => ({
 			...prev,
 			open: true,
 		}));
@@ -128,9 +136,14 @@ const InternalImage: React.FC<KonvaImageProps> = (props) => {
 	);
 };
 
+const ExternalImage: React.FC<BaseImageProps> = ({ svgImage, ...props }) => {
+	return <BaseImage svgImage={svgImage} {...props} />;
+};
+
 const Image = {
 	Inline: InlineImage,
 	Internal: InternalImage,
+	External: ExternalImage,
 };
 
 export default Image;
