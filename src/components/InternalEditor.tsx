@@ -183,6 +183,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
 			{!editor.isDestroyed && (
 				<EditorContent
 					editor={editor}
+					onMouseDown={(e) => e.stopPropagation()}
 					style={{
 						fontSize: `${fontSize}px`,
 						width: "100%",
