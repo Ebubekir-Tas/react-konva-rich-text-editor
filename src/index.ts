@@ -3,5 +3,13 @@ import { ExternalEditor } from "./components/ExternalEditor";
 import { InlineEditor } from "./components/InlineEditor";
 import Image from "./components/KonvaImage";
 
-export { InternalEditor, ExternalEditor, InlineEditor };
+import { ExternalEditorEl, InlineEditorEl, InternalEditorEl } from "./types";
+
+export { 
+  InternalEditor, ExternalEditor, InlineEditor,
+ };
+
+export type {
+  ExternalEditorEl, InlineEditorEl, InternalEditorEl,
+}
 export default Image;

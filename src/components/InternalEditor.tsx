@@ -12,21 +12,13 @@ import {
 	defaultToolbarOptions,
 	CustomParagraph,
 } from "../constants";
-
-interface EditorEl {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	open: boolean;
-	fontSize: number;
-}
+import { InternalEditorEl } from "../types";
 
 interface InternalEditorProps {
 	initialText: string;
+	editorEl: InternalEditorEl;
+	setEditorEl: Dispatch<SetStateAction<InternalEditorEl>>;
 	setSvgImage: Dispatch<SetStateAction<string>>;
-	editorEl: EditorEl;
-	setEditorEl: Dispatch<SetStateAction<EditorEl>>;
 	style?: React.CSSProperties;
 	editorStyle?: React.CSSProperties;
 	toolbarOptions?: string[];
@@ -43,7 +35,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
 		editorStyle,
 	} = props;
 
-	const { fontSize, width, height } = editorEl;
+	const { fontSize = 12, width, height } = editorEl;
 
 	const [text, setText] = useState(initialText);
 	const [loaded, setLoaded] = useState(false);

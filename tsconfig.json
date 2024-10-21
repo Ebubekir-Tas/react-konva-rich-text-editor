@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "isolatedModules": false,
+    "isolatedModules": true,
     "resolveJsonModule": true,
     "lib": ["dom", "esnext"]
   },

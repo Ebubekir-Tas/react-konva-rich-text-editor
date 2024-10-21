@@ -12,17 +12,12 @@ import {
 	defaultToolbarOptions,
 	CustomParagraph,
 } from "../constants";
-
-interface EditorEl {
-	width: number;
-	height: number;
-	fontSize: number;
-}
+import { ExternalEditorEl } from "../types";
 
 interface ExternalEditorProps {
-	initialText: string;
+	initialText?: string;
+	editorEl: ExternalEditorEl;
 	setSvgImage: Dispatch<SetStateAction<string>>;
-	editorEl: EditorEl;
 	style?: React.CSSProperties;
 	editorStyle?: React.CSSProperties;
 	toolbarOptions?: string[];
@@ -44,7 +39,7 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 		const svgString = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 100 100" preserveAspectRatio="none">
           <foreignObject width="100%" height="100%">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: ${fontSize}px; position: absolute; top: 0; left: 0; margin: 0; padding: 0; color: black;">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: ${fontSize || 12}px; position: absolute; top: 0; left: 0; margin: 0; padding: 0; color: black;">
               <style>
                 p { margin: 0; }
               </style>  

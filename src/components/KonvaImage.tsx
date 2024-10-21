@@ -2,17 +2,9 @@ import { useRef, useState, useEffect } from "react";
 import { Image as KonvaImage } from "react-konva";
 import { Image as KonvaImageType } from "konva/lib/shapes/Image";
 import { ImageConfig } from "konva/lib/shapes/Image";
+import { InternalEditorEl, InlineEditorEl } from "../types";
 
-interface EditorEl {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	open: boolean;
-	fontSize?: number;
-}
-
-interface BaseImageProps extends ImageConfig {
+interface BaseImageProps extends Omit<ImageConfig, 'image'> {
 	svgImage: string;
 	handleDblClick?: (event?: any) => void;
 	setKonvaImageNode?: (node: KonvaImageType) => void;
@@ -54,14 +46,15 @@ const BaseImage: React.FC<BaseImageProps> = ({
 				}
 			}}
 			onDblClick={handleDblClick}
+			image={restProps?.image || null}
 			{...restProps}
 		/>
 	);
 };
 
 interface InlineImageProps extends BaseImageProps {
-	editorEl: EditorEl;
-	setEditorEl: React.Dispatch<React.SetStateAction<EditorEl>>;
+	editorEl: InlineEditorEl;
+	setEditorEl: React.Dispatch<React.SetStateAction<InlineEditorEl>>;
 }
 
 const InlineImage: React.FC<InlineImageProps> = (props) => {
@@ -101,7 +94,7 @@ const InlineImage: React.FC<InlineImageProps> = (props) => {
 		}));
 	};
 
-	return editorEl.open ? (
+	return !editorEl.open ? (
 		<BaseImage
 			{...props}
 			setKonvaImageNode={setKonvaImageNode}
@@ -113,8 +106,8 @@ const InlineImage: React.FC<InlineImageProps> = (props) => {
 };
 
 interface InternalImageProps extends BaseImageProps {
-	editorEl: EditorEl;
-	setEditorEl: React.Dispatch<React.SetStateAction<EditorEl>>;
+	editorEl: InternalEditorEl;
+	setEditorEl: React.Dispatch<React.SetStateAction<InternalEditorEl>>;
 }
 const InternalImage: React.FC<InternalImageProps> = (props) => {
 	const { setEditorEl } = props;

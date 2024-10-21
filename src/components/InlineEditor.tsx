@@ -14,26 +14,16 @@ import {
 	defaultToolbarOptions,
 	CustomParagraph,
 } from "../constants";
-
-interface EditorEl {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	open: boolean;
-	fontSize: number;
-}
+import { InlineEditorEl } from "../types";
 
 interface InlineEditorProps {
 	initialText: string;
-	setText: (value: string) => void;
+	editorEl: InlineEditorEl;
+	setEditorEl: Dispatch<SetStateAction<InlineEditorEl>>;
 	setSvgImage: Dispatch<SetStateAction<string>>;
 	style?: CSSProperties;
-	isEditing: boolean;
-	setIsEditing: (value: boolean) => void;
+	editorStyle?: React.CSSProperties;
 	toolbarOptions?: string[];
-	editorEl: EditorEl;
-	setEditorEl: Dispatch<SetStateAction<EditorEl>>;
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
@@ -44,6 +34,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		toolbarOptions,
 		editorEl,
 		setEditorEl,
+		editorStyle,
 	} = props;
 
 	const [text, setText] = useState(initialText);
@@ -62,7 +53,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
         <svg xmlns="http://www.w3.org/2000/svg" width="${editorEl.width}" height="${editorEl.height}" viewBox="0 0 ${editorEl.width} ${editorEl.height}" preserveAspectRatio="none">
           <foreignObject width="100%" height="100%">
           <div xmlns="http://www.w3.org/1999/xhtml" style="
-            font-size: ${editorEl.fontSize}px;
+            font-size: ${editorEl?.fontSize || 12}px;
             color: black;
             width: ${editorEl.width}px;
             height: ${editorEl.height}px;
@@ -213,12 +204,14 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 				<EditorContent
 					editor={editor}
 					style={{
-						fontSize: `${editorEl.fontSize}px`,
+						fontSize: `${editorEl?.fontSize || 12}px`,
+						width: "100%",
+						height: "100%",
 						margin: 0,
 						padding: 0,
 						boxSizing: "border-box",
-						width: "100%",
-						height: "100%",
+						cursor: "text",
+						...editorStyle,
 					}}
 				/>
 			)}

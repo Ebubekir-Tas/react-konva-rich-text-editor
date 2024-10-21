@@ -5,7 +5,7 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "type": "module",
-  "types": "dist/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist"
   ],
@@ -29,10 +29,10 @@
   "author": "ebubekir-tas",
   "license": "ISC",
   "peerDependencies": {
-    "konva": "^8.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-konva": "^18.0.0"
+    "konva": ">=8.0.0",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "react-konva": ">=16.8.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.0",
