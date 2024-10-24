@@ -1,4 +1,4 @@
-interface EditorEl {
+export interface EditorEl {
   x: number;
   y: number;
   width: number;
