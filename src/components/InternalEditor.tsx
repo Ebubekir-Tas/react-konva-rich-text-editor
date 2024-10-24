@@ -1,16 +1,16 @@
 import React, {
-	useState,
-	useEffect,
-	Dispatch,
-	SetStateAction,
-	useRef,
+  useState,
+  useEffect,
+  Dispatch,
+  SetStateAction,
+  useRef,
 } from "react";
 import { EditorContent, useEditor, Editor } from "@tiptap/react";
 import Toolbar from "./Toolbar";
 import {
-	extensions,
-	defaultToolbarOptions,
-	CustomParagraph,
+  extensions,
+  defaultToolbarOptions,
+  CustomParagraph,
 } from "../constants";
 import { generateSvgFromHtml } from "../utilts";
 import { InternalEditorEl } from "../types";
@@ -116,8 +116,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
   }, [editorEl.open, editor, setEditorEl, setSvgImage, updateSvg]);
 
   const stageContainer = document.querySelector(".konvajs-content");
-  if (!stageContainer) return null;
-
+  if (stageContainer === null) return null;
   const stageRect = stageContainer.getBoundingClientRect();
 
   const scrollLeft =
@@ -128,7 +127,6 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
   const overlayX = stageRect.left + scrollLeft + editorEl.x;
   const overlayY = stageRect.top + scrollTop + editorEl.y;
 
-  // Handle Dragging
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
@@ -141,10 +139,8 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
 
   const handleMouseMove = (event: MouseEvent) => {
     if (dragging) {
-      const newX =
-        event.clientX - dragOffset.x - stageRect.left - scrollLeft;
-      const newY =
-        event.clientY - dragOffset.y - stageRect.top - scrollTop;
+      const newX = event.clientX - dragOffset.x - stageRect.left - scrollLeft;
+      const newY = event.clientY - dragOffset.y - stageRect.top - scrollTop;
       setEditorEl((prev) => ({
         ...prev,
         x: newX,
@@ -169,7 +165,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging, dragOffset]);
+  }, [dragging]);
 
   if (!editorEl.open || !editor) {
     return null;
@@ -181,15 +177,15 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
       onMouseDown={handleMouseDown}
       style={{
         position: "absolute",
-        top: overlayY,
-        left: overlayX,
+        top: editorEl.y,
+        left: editorEl.x,
         width: editorEl.width,
         height: editorEl.height,
         border: "2px solid #ccc",
-				borderRadius: "4px",
-				padding: "8px",
-				backgroundColor: "#f9f9f9",
-				boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        borderRadius: "4px",
+        padding: "8px",
+        backgroundColor: "#f9f9f9",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         zIndex: 9999,
         cursor: "move",
         ...style,

@@ -1,7 +1,6 @@
 import React, {
 	useState,
 	useEffect,
-	useCallback,
 	useRef,
 	CSSProperties,
 	Dispatch,
@@ -15,6 +14,8 @@ import {
 	CustomParagraph,
 } from "../constants";
 import { InlineEditorEl } from "../types";
+import { generateSvgFromHtml } from "../utilts";
+import styled from "styled-components";
 
 interface InlineEditorProps {
 	initialText: string;
@@ -44,43 +45,6 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 
 	const previousSvgUrlRef = useRef<string | null>(null);
 
-	const updateSvg = useCallback(
-		(html: string): string => {
-			if (previousSvgUrlRef.current) {
-				URL.revokeObjectURL(previousSvgUrlRef.current);
-			}
-			const svgString = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="${editorEl.width}" height="${editorEl.height}" viewBox="0 0 ${editorEl.width} ${editorEl.height}" preserveAspectRatio="none">
-          <foreignObject width="100%" height="100%">
-          <div xmlns="http://www.w3.org/1999/xhtml" style="
-            font-size: ${editorEl?.fontSize || 12}px;
-            color: black;
-            width: ${editorEl.width}px;
-            height: ${editorEl.height}px;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          ">
-          <style>
-            p { margin: 0; }
-              </style>  
-              ${html}
-            </div>
-          </foreignObject>
-        </svg>`;
-
-			const svgBlob = new Blob([svgString], {
-				type: "image/svg+xml;charset=utf-8",
-			});
-			const newSvgUrl = URL.createObjectURL(svgBlob);
-
-			previousSvgUrlRef.current = newSvgUrl;
-
-			return newSvgUrl;
-		},
-		[editorEl]
-	);
-
 	useEffect(() => {
 		return () => {
 			if (previousSvgUrlRef.current) {
@@ -99,7 +63,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 				isFirstUpdate.current = false;
 				return;
 			}
-			const svgUrl = updateSvg(editor.getHTML());
+			const svgUrl = generateSvgFromHtml(editor.getHTML(), editorEl);
 			setText(editor.getHTML());
 			setSvgImage(svgUrl);
 		},
@@ -112,7 +76,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	useEffect(() => {
 		if (editor) {
 			if (!loaded) {
-				const svgUrl = updateSvg(editor.getHTML());
+				const svgUrl = generateSvgFromHtml(editor.getHTML(), editorEl);
 				setSvgImage(svgUrl);
 				setLoaded(true);
 			}
@@ -120,7 +84,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 			const handleUpdate = ({ editor }: { editor: Editor }) => {
 				const updatedText = editor.getHTML();
 				setText(updatedText);
-				const svgUrl = updateSvg(updatedText);
+				const svgUrl = generateSvgFromHtml(updatedText, editorEl);
 				setSvgImage(svgUrl);
 			};
 
@@ -129,28 +93,31 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 				editor.off("update", handleUpdate);
 			};
 		}
-	}, [editor, setSvgImage, updateSvg, loaded]);
+	}, [editor, setSvgImage, generateSvgFromHtml, loaded]);
 
 	const setBubbleMenuElement = (element: HTMLElement) => {
 		bubbleMenuRef.current = element;
 	};
 
-	const [editorRefReady, setEditorRefReady] = useState(false);
-
 	useEffect(() => {
-		if (editorEl.open && editorRefReady) {
+		if (editorEl.open) {
 			const handleClickOutside = (event: MouseEvent) => {
-				if (
+				const eventPath = event.composedPath ? event.composedPath() : [];
+				console.log("eventPath", eventPath);
+				console.log("editorRef.current", editorRef.current);
+				// Check if the click was outside the editor or the bubble menu
+				const clickedOutsideEditor =
 					editorRef.current &&
 					!editorRef.current.contains(event.target as Node) &&
 					(!bubbleMenuRef.current ||
-						!bubbleMenuRef.current.contains(event.target as Node))
-				) {
+						!bubbleMenuRef.current.contains(event.target as Node));
+
+				if (clickedOutsideEditor) {
 					setEditorEl((prev) => ({ ...prev, open: false }));
 					if (editor) {
 						const updatedText = editor.getHTML();
 						setText(updatedText);
-						const svgUrl = updateSvg(updatedText);
+						const svgUrl = generateSvgFromHtml(updatedText, editorEl);
 						setSvgImage(svgUrl);
 					}
 				}
@@ -162,14 +129,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 				document.removeEventListener("mousedown", handleClickOutside);
 			};
 		}
-	}, [
-		editorEl.open,
-		editorRefReady,
-		editor,
-		setEditorEl,
-		setSvgImage,
-		updateSvg,
-	]);
+	}, [editorEl.open, editor, setEditorEl, setSvgImage, generateSvgFromHtml]);
 
 	if (!editorEl.open || !editor) {
 		return null;
@@ -177,14 +137,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 
 	return (
 		<div
-			ref={(node) => {
-				editorRef.current = node;
-				if (node) {
-					setEditorRefReady(true);
-				} else {
-					setEditorRefReady(false);
-				}
-			}}
+			ref={editorRef}
 			style={{
 				...style,
 				top: editorEl.y,
@@ -211,6 +164,8 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 						padding: 0,
 						boxSizing: "border-box",
 						cursor: "text",
+						lineHeight: 1,
+						verticalAlign: "top",
 						...editorStyle,
 					}}
 				/>
