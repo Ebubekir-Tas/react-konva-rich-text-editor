@@ -3,8 +3,10 @@ import { Image as KonvaImage } from "react-konva";
 import { Image as KonvaImageType } from "konva/lib/shapes/Image";
 import { ImageConfig } from "konva/lib/shapes/Image";
 import { InternalEditorEl, InlineEditorEl } from "../types";
-
-interface BaseImageProps extends Omit<ImageConfig, 'image'> {
+import { InlineEditor } from "./InlineEditor";
+import { Html } from "../html";
+import { generateSvgFromHtml } from "../utilts";
+interface BaseImageProps extends Omit<ImageConfig, "image"> {
 	svgImage: string;
 	handleDblClick?: (event?: any) => void;
 	setKonvaImageNode?: (node: KonvaImageType) => void;
@@ -16,7 +18,7 @@ const BaseImage: React.FC<BaseImageProps> = ({
 	setKonvaImageNode,
 	...restProps
 }) => {
-	const internalImageRef = useRef<KonvaImageType | null>(null);
+	const internalImageRef = useRef<KonvaImageType | null>();
 
 	useEffect(() => {
 		if (svgImage) {
@@ -58,10 +60,28 @@ interface InlineImageProps extends BaseImageProps {
 }
 
 const InlineImage: React.FC<InlineImageProps> = (props) => {
-	const { editorEl, setEditorEl } = props;
+	const { editorEl, setEditorEl, svgImage, initialText, setSvgImage } = props;
+
 	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(
 		null
 	);
+
+	const previousSvgUrlRef = useRef<string | null>(null);
+
+	// Generate initial SVG when svgImage is empty
+	useEffect(() => {
+		if (!svgImage) {
+			const initialSvgUrl = generateSvgFromHtml(initialText, editorEl);
+			previousSvgUrlRef.current = initialSvgUrl;
+			setSvgImage(initialSvgUrl);
+		}
+
+		return () => {
+			if (previousSvgUrlRef.current) {
+				URL.revokeObjectURL(previousSvgUrlRef.current);
+			}
+		};
+	}, [svgImage, editorEl, initialText, setSvgImage]);
 
 	const inlineDblClick = () => {
 		if (!konvaImageNode) {
@@ -75,33 +95,43 @@ const InlineImage: React.FC<InlineImageProps> = (props) => {
 			return;
 		}
 
-		const imagePosition = konvaImageNode.absolutePosition();
 		const imageSize = {
 			width: konvaImageNode.width(),
 			height: konvaImageNode.height(),
 		};
 
-		const containerRect = stage.container().getBoundingClientRect();
-		const x = containerRect.left + imagePosition.x;
-		const y = containerRect.top + imagePosition.y;
-
 		setEditorEl((prev) => ({
 			...prev,
-			x,
-			y,
 			open: true,
 			...imageSize,
 		}));
 	};
-
-	return !editorEl.open ? (
-		<BaseImage
-			{...props}
-			setKonvaImageNode={setKonvaImageNode}
-			handleDblClick={inlineDblClick}
-		/>
-	) : (
-		<></>
+	return (
+		<>
+			{!editorEl.open ? (
+				<BaseImage
+					{...props}
+					setKonvaImageNode={setKonvaImageNode}
+					handleDblClick={inlineDblClick}
+				/>
+			) : (
+				<Html
+					divProps={{
+						style: {
+							zIndex: 10,
+						},
+					}}
+				>
+					<InlineEditor
+						initialText="hi world"
+						setSvgImage={setSvgImage}
+						setEditorEl={setEditorEl}
+						editorEl={editorEl}
+						editorStyle={{}}
+					/>
+				</Html>
+			)}
+		</>
 	);
 };
 
