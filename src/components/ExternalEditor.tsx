@@ -15,7 +15,7 @@ import {
 import { ExternalEditorEl } from "../types";
 
 interface ExternalEditorProps {
-	initialText?: string;
+	initialText: string;
 	editorEl: ExternalEditorEl;
 	setSvgImage: Dispatch<SetStateAction<string>>;
 	style?: React.CSSProperties;

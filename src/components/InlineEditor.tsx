@@ -15,7 +15,6 @@ import {
 } from "../constants";
 import { InlineEditorEl } from "../types";
 import { generateSvgFromHtml } from "../utilts";
-import styled from "styled-components";
 
 interface InlineEditorProps {
 	initialText: string;
