@@ -15,7 +15,8 @@ import {
 import { ExternalEditorEl } from "../types";
 
 interface ExternalEditorProps {
-	initialText: string;
+	text: string;
+	setText: Dispatch<SetStateAction<string>>;
 	editorEl: ExternalEditorEl;
 	setSvgImage: Dispatch<SetStateAction<string>>;
 	style?: React.CSSProperties;
@@ -25,12 +26,13 @@ interface ExternalEditorProps {
 
 export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 	const {
-		initialText,
+		text,
+		setText,
 		editorEl,
 		setSvgImage,
 		style,
-		toolbarOptions,
 		editorStyle,
+		toolbarOptions,
 	} = props;
 
 	const { width, height, fontSize } = editorEl;
@@ -53,8 +55,6 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 		});
 		return URL.createObjectURL(svgBlob);
 	};
-
-	const [text, setText] = useState(initialText);
 
 	const editor = useEditor({
 		extensions: [...extensions, CustomParagraph],
@@ -85,7 +85,7 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 				editor.off("update", handleUpdate);
 			}
 		};
-	}, [editor, setSvgImage, updateSvg, setText, loaded]);
+	}, [editor, setSvgImage, updateSvg, loaded]);
 
 	const options = toolbarOptions || defaultToolbarOptions;
 

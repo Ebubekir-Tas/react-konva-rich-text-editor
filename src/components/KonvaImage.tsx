@@ -72,15 +72,14 @@ interface InlineImageProps extends BaseImageProps {
 }
 
 const InlineImage: React.FC<InlineImageProps> = (props) => {
-	const { editorEl, setEditorEl, initialText, ...rest } =
-		props;
+	const { editorEl, setEditorEl, initialText, ...rest } = props;
 
 	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(
 		null
 	);
 
-  const [text, setText] = useState(initialText);
-  const [svgImage, setSvgImage] = useState("");
+	const [text, setText] = useState(initialText);
+	const [svgImage, setSvgImage] = useState("");
 
 	useEffect(() => {
 		if (!svgImage) {
@@ -143,11 +142,14 @@ interface InternalImageProps extends BaseImageProps {
 	setEditorEl: React.Dispatch<React.SetStateAction<InternalEditorEl>>;
 }
 const InternalImage: React.FC<InternalImageProps> = (props) => {
-	const { setEditorEl, setSvgImage, svgImage, initialText, editorEl } = props;
+	const { editorEl, setEditorEl, initialText, ...rest } = props;
+
+	const [text, setText] = useState(initialText);
+	const [svgImage, setSvgImage] = useState("");
 
 	useEffect(() => {
 		if (!svgImage) {
-			const initialSvgUrl = generateSvgFromHtml(initialText, editorEl);
+			const initialSvgUrl = generateSvgFromHtml(text, editorEl);
 			setSvgImage(initialSvgUrl);
 		}
 	}, [svgImage, editorEl, initialText, setSvgImage]);
@@ -162,7 +164,8 @@ const InternalImage: React.FC<InternalImageProps> = (props) => {
 
 	return !editorEl.open ? (
 		<BaseImage
-			{...props}
+			{...rest}
+			svgImage={svgImage}
 			imageRef={imageRef}
 			handleDblClick={internalDblClick}
 		/>
@@ -175,7 +178,8 @@ const InternalImage: React.FC<InternalImageProps> = (props) => {
 			}}
 		>
 			<InternalEditor
-				initialText={initialText}
+				text={text}
+				setText={setText}
 				setSvgImage={setSvgImage}
 				setEditorEl={setEditorEl}
 				editorEl={editorEl}

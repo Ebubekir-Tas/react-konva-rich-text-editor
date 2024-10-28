@@ -16,7 +16,8 @@ import { generateSvgFromHtml } from "../utilts";
 import { InternalEditorEl } from "../types";
 
 interface InternalEditorProps {
-  initialText: string;
+	text: string;
+	setText: Dispatch<SetStateAction<string>>;
   editorEl: InternalEditorEl;
   setEditorEl: Dispatch<SetStateAction<InternalEditorEl>>;
   setSvgImage: Dispatch<SetStateAction<string>>;
@@ -27,7 +28,8 @@ interface InternalEditorProps {
 
 export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
   const {
-    initialText,
+		text,
+		setText,
     editorEl,
     setEditorEl,
     setSvgImage,
@@ -37,8 +39,6 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
   } = props;
 
   const { fontSize = 12 } = editorEl;
-
-  const [text, setText] = useState(initialText);
   const [loaded, setLoaded] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
