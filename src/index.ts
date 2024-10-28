@@ -5,11 +5,12 @@ import Image from "./components/KonvaImage";
 import CustomStage from "./components/CustomStage";
 import { ExternalEditorEl, InlineEditorEl, InternalEditorEl } from "./types";
 
-export { 
-  InternalEditor, ExternalEditor, InlineEditor, CustomStage
- };
+export {
+	InternalEditor,
+	ExternalEditor,
+	InlineEditor,
+	CustomStage as EditorStage,
+};
 
-export type {
-  ExternalEditorEl, InlineEditorEl, InternalEditorEl,
-}
+export type { ExternalEditorEl, InlineEditorEl, InternalEditorEl };
 export default Image;
