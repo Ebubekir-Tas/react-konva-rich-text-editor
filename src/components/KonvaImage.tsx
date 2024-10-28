@@ -8,7 +8,6 @@ import { InternalEditor } from "./InternalEditor";
 import { Html } from "../html";
 import { generateSvgFromHtml } from "../utilts";
 interface BaseImageProps extends Omit<ImageConfig, "image"> {
-	svgImage: string;
 	handleDblClick?: (event?: any) => void;
 	setKonvaImageNode?: (node: KonvaImageType) => void;
 }
@@ -73,19 +72,22 @@ interface InlineImageProps extends BaseImageProps {
 }
 
 const InlineImage: React.FC<InlineImageProps> = (props) => {
-	const { editorEl, setEditorEl, svgImage, initialText, setSvgImage, ...rest } =
+	const { editorEl, setEditorEl, initialText, ...rest } =
 		props;
 
 	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(
 		null
 	);
 
+  const [text, setText] = useState(initialText);
+  const [svgImage, setSvgImage] = useState("");
+
 	useEffect(() => {
 		if (!svgImage) {
-			const initialSvgUrl = generateSvgFromHtml(initialText, editorEl);
+			const initialSvgUrl = generateSvgFromHtml(text, editorEl);
 			setSvgImage(initialSvgUrl);
 		}
-	}, [svgImage, editorEl, initialText, setSvgImage]);
+	}, [svgImage, editorEl, text, setSvgImage]);
 
 	const inlineDblClick = () => {
 		if (!konvaImageNode) {
@@ -123,7 +125,8 @@ const InlineImage: React.FC<InlineImageProps> = (props) => {
 					}}
 				>
 					<InlineEditor
-						initialText={initialText}
+						text={text}
+						setText={setText}
 						setSvgImage={setSvgImage}
 						setEditorEl={setEditorEl}
 						editorEl={editorEl}

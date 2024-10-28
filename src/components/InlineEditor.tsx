@@ -17,7 +17,8 @@ import { InlineEditorEl } from "../types";
 import { generateSvgFromHtml } from "../utilts";
 
 interface InlineEditorProps {
-	initialText: string;
+	text: string;
+	setText: Dispatch<SetStateAction<string>>;
 	editorEl: InlineEditorEl;
 	setEditorEl: Dispatch<SetStateAction<InlineEditorEl>>;
 	setSvgImage: Dispatch<SetStateAction<string>>;
@@ -28,7 +29,8 @@ interface InlineEditorProps {
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	const {
-		initialText,
+		text,
+		setText,
 		setSvgImage,
 		style,
 		toolbarOptions,
@@ -37,7 +39,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		editorStyle,
 	} = props;
 
-	const [text, setText] = useState(initialText);
+	console.log('text', text);
 	const options = toolbarOptions || defaultToolbarOptions;
 
 	console.log("editor el", editorEl);
