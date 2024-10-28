@@ -87,7 +87,7 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 		};
 	}, [editor, setSvgImage, updateSvg, setText, loaded]);
 
-	const options = toolbarOptions || defaultToolbarOptions;
+	const options = (toolbarOptions && toolbarOptions.length > 0) ? toolbarOptions : defaultToolbarOptions;
 
 	const bubbleMenuRef = useRef<HTMLElement | null>(null);
 	const setBubbleMenuElement = (element: HTMLElement) => {
