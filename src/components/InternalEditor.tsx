@@ -44,7 +44,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const bubbleMenuRef = useRef<HTMLElement | null>(null);
 
-  const options = toolbarOptions || defaultToolbarOptions;
+  const options = (toolbarOptions && toolbarOptions.length > 0) ? toolbarOptions : defaultToolbarOptions;
 
   const setBubbleMenuElement = (element: HTMLElement) => {
     bubbleMenuRef.current = element;

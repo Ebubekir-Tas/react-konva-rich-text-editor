@@ -40,7 +40,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	} = props;
 
 	console.log('text', text);
-	const options = toolbarOptions || defaultToolbarOptions;
+	const options = (toolbarOptions && toolbarOptions.length > 0) ? toolbarOptions : defaultToolbarOptions;
 
 	console.log("editor el", editorEl);
 
