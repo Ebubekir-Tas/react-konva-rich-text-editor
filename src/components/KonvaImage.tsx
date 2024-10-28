@@ -1,12 +1,13 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, Dispatch, SetStateAction, } from "react";
 import { Image as KonvaImage } from "react-konva";
 import { Image as KonvaImageType } from "konva/lib/shapes/Image";
 import { ImageConfig } from "konva/lib/shapes/Image";
-import { InternalEditorEl, InlineEditorEl } from "../types";
+import { InternalEditorEl, InlineEditorEl, ExternalEditorEl } from "../types";
 import { InlineEditor } from "./InlineEditor";
 import { InternalEditor } from "./InternalEditor";
 import { Html } from "../html";
 import { generateSvgFromHtml } from "../utilts";
+
 interface BaseImageProps extends Omit<ImageConfig, "image"> {
 	handleDblClick?: (event?: any) => void;
 	setKonvaImageNode?: (node: KonvaImageType) => void;
@@ -196,7 +197,13 @@ const InternalImage: React.FC<InternalImageProps> = (props) => {
 	);
 };
 
-const ExternalImage: React.FC<BaseImageProps> = ({ svgImage, ...props }) => {
+interface ExternalImageProps {
+	svgImage: string;
+	setSvgImage: Dispatch<SetStateAction<string>>
+	initialText?: string;
+	editorEl: ExternalEditorEl,
+}
+const ExternalImage: React.FC<BaseImageProps & ExternalImageProps> = ({ svgImage, ...props }) => {
 	return <BaseImage svgImage={svgImage} {...props} />;
 };
 

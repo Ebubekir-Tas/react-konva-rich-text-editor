@@ -14,7 +14,7 @@ import {
 } from "../constants";
 import { ExternalEditorEl } from "../types";
 
-interface ExternalEditorProps {
+export interface ExternalEditorProps {
 	initialText: string;
 	editorEl: ExternalEditorEl;
 	setSvgImage: Dispatch<SetStateAction<string>>;
