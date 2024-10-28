@@ -41,10 +41,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		editorStyle,
 	} = props;
 
-	console.log('text', text);
 	const options = (toolbarOptions && toolbarOptions.length > 0) ? toolbarOptions : defaultToolbarOptions;
-
-	console.log("editor el", editorEl);
 
 	const previousSvgUrlRef = useRef<string | null>(null);
 
@@ -105,10 +102,6 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	useEffect(() => {
 		if (editorEl.open) {
 			const handleClickOutside = (event: MouseEvent) => {
-				const eventPath = event.composedPath ? event.composedPath() : [];
-				console.log("eventPath", eventPath);
-				console.log("editorRef.current", editorRef.current);
-				// Check if the click was outside the editor or the bubble menu
 				const clickedOutsideEditor =
 					editorRef.current &&
 					!editorRef.current.contains(event.target as Node) &&
