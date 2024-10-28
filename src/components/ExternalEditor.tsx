@@ -20,6 +20,7 @@ interface ExternalEditorProps {
 	setSvgImage: Dispatch<SetStateAction<string>>;
 	style?: React.CSSProperties;
 	editorStyle?: React.CSSProperties;
+	toolbarStyle?: React.CSSProperties;
 	toolbarOptions?: string[];
 }
 
@@ -30,6 +31,7 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 		setSvgImage,
 		style,
 		toolbarOptions,
+		toolbarStyle,
 		editorStyle,
 	} = props;
 
@@ -101,6 +103,7 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 				editor={editor}
 				options={options}
 				setBubbleMenuElement={setBubbleMenuElement}
+				toolbarStyle={toolbarStyle}
 			/>
 			{!editor.isDestroyed && (
 				<EditorContent editor={editor} style={editorStyle} />

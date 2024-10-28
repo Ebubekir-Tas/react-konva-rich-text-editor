@@ -24,6 +24,7 @@ interface InlineEditorProps {
 	setSvgImage: Dispatch<SetStateAction<string>>;
 	style?: CSSProperties;
 	editorStyle?: React.CSSProperties;
+	toolbarStyle?: React.CSSProperties;
 	toolbarOptions?: string[];
 }
 
@@ -36,6 +37,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		toolbarOptions,
 		editorEl,
 		setEditorEl,
+		toolbarStyle,
 		editorStyle,
 	} = props;
 
@@ -153,6 +155,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 				editor={editor}
 				options={options}
 				setBubbleMenuElement={setBubbleMenuElement}
+				toolbarStyle={toolbarStyle}
 			/>
 			{!editor.isDestroyed && (
 				<EditorContent

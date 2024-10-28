@@ -68,11 +68,13 @@ const BaseImage: React.FC<BaseImageProps> = ({
 interface InlineImageProps extends BaseImageProps {
 	editorEl: InlineEditorEl;
 	setEditorEl: React.Dispatch<React.SetStateAction<InlineEditorEl>>;
+	editorStyle: React.CSSProperties;
+	toolbarStyle: React.CSSProperties;
 	initialText: string;
 }
 
 const InlineImage: React.FC<InlineImageProps> = (props) => {
-	const { editorEl, setEditorEl, initialText, ...rest } = props;
+	const { editorEl, setEditorEl, initialText, editorStyle, toolbarStyle, ...rest } = props;
 
 	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(
 		null
@@ -129,7 +131,8 @@ const InlineImage: React.FC<InlineImageProps> = (props) => {
 						setSvgImage={setSvgImage}
 						setEditorEl={setEditorEl}
 						editorEl={editorEl}
-						editorStyle={{}}
+						editorStyle={editorStyle || {}}
+						toolbarStyle={toolbarStyle ||{}}
 					/>
 				</Html>
 			)}
@@ -140,9 +143,12 @@ const InlineImage: React.FC<InlineImageProps> = (props) => {
 interface InternalImageProps extends BaseImageProps {
 	editorEl: InternalEditorEl;
 	setEditorEl: React.Dispatch<React.SetStateAction<InternalEditorEl>>;
+	editorStyle?: React.CSSProperties;
+	toolbarStyle?: React.CSSProperties;
+	initialText: string;
 }
 const InternalImage: React.FC<InternalImageProps> = (props) => {
-	const { editorEl, setEditorEl, initialText, ...rest } = props;
+	const { editorEl, setEditorEl, initialText, editorStyle, toolbarStyle, ...rest } = props;
 
 	const [text, setText] = useState(initialText);
 	const [svgImage, setSvgImage] = useState("");
@@ -183,7 +189,8 @@ const InternalImage: React.FC<InternalImageProps> = (props) => {
 				setSvgImage={setSvgImage}
 				setEditorEl={setEditorEl}
 				editorEl={editorEl}
-				editorStyle={{}}
+				editorStyle={editorStyle||{}}
+				toolbarStyle={toolbarStyle ||{}}
 			/>
 		</Html>
 	);

@@ -23,6 +23,7 @@ interface InternalEditorProps {
   setSvgImage: Dispatch<SetStateAction<string>>;
   style?: React.CSSProperties;
   editorStyle?: React.CSSProperties;
+  toolbarStyle?: React.CSSProperties;
   toolbarOptions?: string[];
 }
 
@@ -36,6 +37,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
     style,
     toolbarOptions,
     editorStyle,
+    toolbarStyle,
   } = props;
 
   const { fontSize = 12 } = editorEl;
@@ -195,6 +197,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
         editor={editor}
         options={options}
         setBubbleMenuElement={setBubbleMenuElement}
+        toolbarStyle={toolbarStyle}
       />
       {!editor.isDestroyed && (
         <EditorContent
