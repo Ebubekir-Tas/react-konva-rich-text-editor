@@ -50,8 +50,9 @@ const GlobalStyles = createGlobalStyle`
 
   .bubble-menu-button:hover,
   .bubble-menu-button.is-active {
-    background-color: #f0f0f0;
-    color: black;
+    background-color: #e0e0e0;
+    color: #333;
+    transform: scale(1.05);
   }
 
   .bubble-menu-button:disabled {
@@ -122,6 +123,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
     [editor]
   );
 
+  const currentFontFamily = editor.getAttributes("textStyle").fontFamily || "Arial";
+
   const buttonComponents: { [key: string]: React.ReactNode } = {
     undo: (
       <button
@@ -184,10 +187,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
         key="fontFamily"
         className="bubble-menu-select"
         onChange={(e) => toggleFont(e.target.value)}
+        value={currentFontFamily}
       >
-        <option value="Times New Roman">Times New Roman</option>
         <option value="Arial">Arial</option>
         <option value="Helvetica">Helvetica</option>
+        <option value="Times New Roman">Times New Roman</option>
         <option value="Times">Times</option>
         <option value="Courier New">Courier New</option>
         <option value="Courier">Courier</option>
