@@ -1,20 +1,12 @@
-import React, {
-	useState,
-	useEffect,
-	useRef,
-	CSSProperties,
-	Dispatch,
-	SetStateAction,
-} from "react";
-import { EditorContent, useEditor, Editor } from "@tiptap/react";
+import React, { useRef, CSSProperties, Dispatch, SetStateAction } from "react";
+import { EditorContent } from "@tiptap/react";
 import Toolbar from "./Toolbar";
-import {
-	extensions,
-	defaultToolbarOptions,
-	CustomParagraph,
-} from "../constants";
 import { InlineEditorEl } from "../types";
-import { generateSvgFromHtml } from "../utilts";
+import { generateSvgFromHtml } from "../utils";
+import { useClickOutside } from "../hooks/useClickOutside";
+import { defaultToolbarOptions } from "../constants";
+import { useCustomEditor } from "../hooks/useCustomEditor";
+import { useHandleDrag } from "../hooks/useHandleDrag";
 
 interface InlineEditorProps {
 	text: string;
@@ -26,12 +18,15 @@ interface InlineEditorProps {
 	editorStyle?: React.CSSProperties;
 	toolbarStyle?: React.CSSProperties;
 	toolbarOptions?: string[];
+	initialText: string;
+	svgImage: any;
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	const {
 		text,
 		setText,
+		svgImage,
 		setSvgImage,
 		style,
 		toolbarOptions,
@@ -39,93 +34,53 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		setEditorEl,
 		toolbarStyle,
 		editorStyle,
+		initialText,
 	} = props;
 
-	const options = (toolbarOptions && toolbarOptions.length > 0) ? toolbarOptions : defaultToolbarOptions;
+	const { handleMouseDown } = useHandleDrag({
+    editorEl,
+    setEditorEl,
+    containerSelector: '.konvajs-content',
+  });
 
-	const previousSvgUrlRef = useRef<string | null>(null);
-
-	useEffect(() => {
-		return () => {
-			if (previousSvgUrlRef.current) {
-				URL.revokeObjectURL(previousSvgUrlRef.current);
-			}
-		};
-	}, []);
-
-	const isFirstUpdate = useRef(true);
-
-	const editor = useEditor({
-		extensions: [...extensions, CustomParagraph],
-		content: text,
-		onUpdate: ({ editor }) => {
-			if (isFirstUpdate.current) {
-				isFirstUpdate.current = false;
-				return;
-			}
-			const svgUrl = generateSvgFromHtml(editor.getHTML(), editorEl);
-			setText(editor.getHTML());
-			setSvgImage(svgUrl);
-		},
-	});
+	const options =
+		toolbarOptions && toolbarOptions.length > 0
+			? toolbarOptions
+			: defaultToolbarOptions;
 
 	const editorRef = useRef<HTMLDivElement | null>(null);
 	const bubbleMenuRef = useRef<HTMLElement | null>(null);
-	const [loaded, setLoaded] = useState(false);
 
-	useEffect(() => {
-		if (editor) {
-			if (!loaded) {
-				const svgUrl = generateSvgFromHtml(editor.getHTML(), editorEl);
-				setSvgImage(svgUrl);
-				setLoaded(true);
-			}
 
-			const handleUpdate = ({ editor }: { editor: Editor }) => {
-				const updatedText = editor.getHTML();
-				setText(updatedText);
-				const svgUrl = generateSvgFromHtml(updatedText, editorEl);
-				setSvgImage(svgUrl);
-			};
+	const editor = useCustomEditor({
+		initialText: text,
+		setText,
+		editorEl,
+		setSvgImage,
+	});
 
-			editor.on("update", handleUpdate);
-			return () => {
-				editor.off("update", handleUpdate);
-			};
-		}
-	}, [editor, setSvgImage, generateSvgFromHtml, loaded]);
+	useClickOutside({
+		isOpen: editorEl.open,
+		editorRef,
+		bubbleMenuRef,
+		onClose: () => {
+			const svgString = generateSvgFromHtml(editor.getHTML(), editorEl);
+			console.log('Generated SVG String:', svgString);
+	
+			// Create Blob and generate Blob URL
+			const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+			const svgUrl = URL.createObjectURL(svgBlob);
+	
+			// Update state
+			setText(editor.getHTML());
+			setSvgImage(svgUrl);
+			setEditorEl((prev) => ({ ...prev, open: false }));
+		},
+	});
 
 	const setBubbleMenuElement = (element: HTMLElement) => {
 		bubbleMenuRef.current = element;
 	};
-
-	useEffect(() => {
-		if (editorEl.open) {
-			const handleClickOutside = (event: MouseEvent) => {
-				const clickedOutsideEditor =
-					editorRef.current &&
-					!editorRef.current.contains(event.target as Node) &&
-					(!bubbleMenuRef.current ||
-						!bubbleMenuRef.current.contains(event.target as Node));
-
-				if (clickedOutsideEditor) {
-					setEditorEl((prev) => ({ ...prev, open: false }));
-					if (editor) {
-						const updatedText = editor.getHTML();
-						setText(updatedText);
-						const svgUrl = generateSvgFromHtml(updatedText, editorEl);
-						setSvgImage(svgUrl);
-					}
-				}
-			};
-
-			document.addEventListener("mousedown", handleClickOutside);
-
-			return () => {
-				document.removeEventListener("mousedown", handleClickOutside);
-			};
-		}
-	}, [editorEl.open, editor, setEditorEl, setSvgImage, generateSvgFromHtml]);
 
 	if (!editorEl.open || !editor) {
 		return null;
@@ -134,6 +89,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	return (
 		<div
 			ref={editorRef}
+			onMouseDown={handleMouseDown}
 			style={{
 				...style,
 				top: editorEl.y,
