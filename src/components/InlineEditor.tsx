@@ -1,6 +1,6 @@
 import React, { useRef, CSSProperties, Dispatch, SetStateAction } from "react";
 import { EditorContent } from "@tiptap/react";
-import Toolbar from "./Toolbar";
+import Toolbar from "./toolbar";
 import { InlineEditorEl } from "../types";
 import { generateSvgFromHtml } from "../utils";
 import { useClickOutside } from "../hooks/useClickOutside";
@@ -38,10 +38,10 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	} = props;
 
 	const { handleMouseDown } = useHandleDrag({
-    editorEl,
-    setEditorEl,
-    containerSelector: '.konvajs-content',
-  });
+		editorEl,
+		setEditorEl,
+		containerSelector: '.konvajs-content',
+	});
 
 	const options =
 		toolbarOptions && toolbarOptions.length > 0
@@ -66,11 +66,11 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		onClose: () => {
 			const svgString = generateSvgFromHtml(editor.getHTML(), editorEl);
 			console.log('Generated SVG String:', svgString);
-	
+
 			// Create Blob and generate Blob URL
 			const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
 			const svgUrl = URL.createObjectURL(svgBlob);
-	
+
 			// Update state
 			setText(editor.getHTML());
 			setSvgImage(svgUrl);

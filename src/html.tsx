@@ -1,35 +1,39 @@
-import { useEffect, useRef } from "react";
-import { createRoot, Root } from "react-dom/client";
+import { useEffect, useRef } from 'react';
+import { createRoot, Root } from 'react-dom/client';
 
-export const Html = ({ children, container }: any) => {
-  const containerRef = useRef<HTMLDivElement>(document.createElement("div"));
-  const rootRef = useRef<Root | null>(null);
+interface HtmlProps {
+	children: React.ReactNode;
+	container: Element | null;
+};
 
-  useEffect(() => {
-    if (!container) return;
+export const Html: React.FC<HtmlProps> = ({ children, container }) => {
+	const containerRef = useRef<HTMLDivElement>(document.createElement("div"));
+	const rootRef = useRef<Root | null>(null);
 
-    // Append the container to the Stage's parent container if not already present
-    if (!container.contains(containerRef.current)) {
-      container.appendChild(containerRef.current);
-    }
+	useEffect(() => {
+		if (!container) return;
 
-    if (!rootRef.current) {
-      rootRef.current = createRoot(containerRef.current);
-    }
+		if (!container.contains(containerRef.current)) {
+			container.appendChild(containerRef.current);
+		}
 
-    rootRef.current.render(<>{children}</>);
+		if (!rootRef.current) {
+			rootRef.current = createRoot(containerRef.current);
+		}
 
-    return () => {
-      if (rootRef.current) {
-        rootRef.current.unmount();
-        rootRef.current = null;
-      }
+		rootRef.current.render(<>{children}</>);
 
-      if (containerRef.current && container.contains(containerRef.current)) {
-        container.removeChild(containerRef.current);
-      }
-    }
-  }, [container]);
+		return () => {
+			if (rootRef.current) {
+				rootRef.current.unmount();
+				rootRef.current = null;
+			}
 
-  return null;
+			if (containerRef.current && container.contains(containerRef.current)) {
+				container.removeChild(containerRef.current);
+			}
+		}
+	}, [container]);
+
+	return null;
 };

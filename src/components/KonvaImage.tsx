@@ -19,57 +19,50 @@ const BaseImage: React.FC<BaseImageProps> = ({
   setKonvaImageNode,
   ...restProps
 }) => {
-  const internalImageRef = useRef<KonvaImageType | null>(null);
-  const previousUrlRef = useRef<string | null>(null);
-  const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
+	const internalImageRef = useRef<KonvaImageType | null>(null);
+	const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
 
-  useEffect(() => {
-    if (svgImage) {
-      console.log('Loading image from svgImage:', svgImage);
-      const img = new window.Image();
-      img.src = svgImage;
+	useEffect(() => {
+		if (svgImage) {
+			console.log("Loading image from svgImage:", svgImage);
+			const img = new window.Image();
+			img.src = svgImage; // Data URL
 
-      img.onload = () => {
-        console.log('Image loaded successfully');
-        setImageElement(img);
-      };
+			img.onload = () => {
+				console.log("Image loaded successfully");
+				setImageElement(img);
+			};
 
-      img.onerror = (e) => {
-        console.error('Failed to load image:', svgImage, e);
-      };
+			img.onerror = (e) => {
+				console.error("Failed to load image:", svgImage, e);
+			};
+		} else {
+			setImageElement(null);
+		}
+	}, [svgImage]);
 
-      // Cleanup old Blob URL
-      return () => {
-        if (previousUrlRef.current && previousUrlRef.current.startsWith("blob:")) {
-          URL.revokeObjectURL(previousUrlRef.current);
-          previousUrlRef.current = null;
-        }
-      };
-    } else {
-      setImageElement(null);
-    }
-  }, [svgImage]);
+	useEffect(() => {
+		if (internalImageRef.current && imageElement) {
+			internalImageRef.current.image(imageElement);
+			internalImageRef.current.getLayer()?.batchDraw();
+		}
+	}, [imageElement]);
 
-  useEffect(() => {
-    if (internalImageRef.current && imageElement) {
-      internalImageRef.current.image(imageElement);
-      internalImageRef.current.getLayer()?.batchDraw();
-    }
-  }, [imageElement]);
 
-  return (
-		//@ts-ignore
-    <KonvaImage
-      ref={(node) => {
-        internalImageRef.current = node;
-        if (node) {
-          setKonvaImageNode?.(node);
-        }
-      }}
-      onDblClick={handleDblClick}
-      {...restProps}
-    />
-  );
+
+	return (
+		<KonvaImage
+			ref={(node) => {
+				internalImageRef.current = node;
+				if (node) {
+					setKonvaImageNode?.(node);
+				}
+			}}
+			onDblClick={handleDblClick}
+			image={undefined}
+			{...restProps}
+		/>
+	);
 };
 
 interface InlineImageProps extends BaseImageProps {
@@ -96,21 +89,18 @@ const InlineImage = (props: InlineImageProps) => {
 	const [text, setText] = useState(initialText);
 	const [svgImage, setSvgImage] = useState("");
 
-	const [parentContainer, setParentContainer] = useState(null);
+	const [parentContainer, setParentContainer] = useState<Element | null>(null);
 	useEffect(() => {
 		if (konvaImageNode) {
 			const stage = konvaImageNode.getStage();
 			if (stage) {
-				const stageContainer = stage.container(); // .konvajs-content
-				if (stageContainer) {
-					stageContainer.style.position = "relative";
-					// @ts-ignore
-					setParentContainer(stageContainer);
+				const stageContainer = stage.container();
+				if (stageContainer && stageContainer.parentNode instanceof Element) {
+					setParentContainer(stageContainer.parentNode as Element);
 				}
 			}
 		}
 	}, [konvaImageNode]);
-
 
 	const inlineDblClick = () => {
 		if (!konvaImageNode) {
@@ -133,41 +123,48 @@ const InlineImage = (props: InlineImageProps) => {
 	console.log('svg image', svgImage)
 
 	return (
-<>
-  <BaseImage
-    {...rest}
-    svgImage={svgImage}
-    setKonvaImageNode={setKonvaImageNode}
-    handleDblClick={inlineDblClick}
-    visible={!editorEl.open}
-    listening={!editorEl.open}
-  />
-  {editorEl.open &&  (
-    <Html container={parentContainer}>
-      <div
-        style={{
-          zIndex: 1000,
-        }}
-      >
-        <InlineEditor
-          initialText={initialText} // Pass the initialText for editor initialization
-          svgImage={svgImage} // Keep the SVG in sync with the editor
-          text={text}
-          setText={setText}
-          setSvgImage={setSvgImage}
-          setEditorEl={setEditorEl}
-          editorEl={editorEl}
-          editorStyle={editorStyle}
-          toolbarStyle={toolbarStyle}
+		<>
+			<BaseImage
+				{...rest}
+				svgImage={svgImage}
+				setKonvaImageNode={setKonvaImageNode}
+				handleDblClick={inlineDblClick}
+				visible={!editorEl.open}
+				listening={!editorEl.open}
+			/>
+			{editorEl.open && parentContainer && (
+				<Html container={parentContainer}>
+					<div
+						style={{
+							position: "fixed",
+							top: editorEl.y,
+							left: editorEl.x,
+							width: editorEl.width,
+							height: editorEl.height,
+							transformOrigin: "top left",
+							zIndex: 1000,
+						}}
+					>
+						<InlineEditor
+							initialText={initialText} // Pass the initialText for editor initialization
+							svgImage={svgImage} // Keep the SVG in sync with the editor
+							text={text}
+							setText={setText}
+							setSvgImage={setSvgImage}
+							setEditorEl={setEditorEl}
+							editorEl={editorEl}
+							editorStyle={editorStyle}
+							toolbarStyle={toolbarStyle}
 
 
-        />
-      </div>
-    </Html>
-  )}
-</>
+						/>
+					</div>
+				</Html>
+			)}
+		</>
 	);
 };
+
 
 interface InternalImageProps extends BaseImageProps {
 	editorEl: InternalEditorEl;
@@ -212,13 +209,14 @@ const InternalImage: React.FC<InternalImageProps> = (props) => {
 			handleDblClick={internalDblClick}
 		/>
 	) : (
-		<Html
-		// divProps={{
-		// 	style: {
-		// 		zIndex: 10,
-		// 	},
-		// }}
-		>
+		<
+			// Html
+			// divProps={{
+			// 	style: {
+			// 		zIndex: 10,
+			// 	},
+			// }}
+			>
 			<InternalEditor
 				text={text}
 				setText={setText}
@@ -228,7 +226,9 @@ const InternalImage: React.FC<InternalImageProps> = (props) => {
 				editorStyle={editorStyle || {}}
 				toolbarStyle={toolbarStyle || {}}
 			/>
-		</Html>
+		</
+		// Html
+		>
 	);
 };
 

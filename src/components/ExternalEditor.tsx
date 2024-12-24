@@ -6,7 +6,7 @@ import React, {
 	SetStateAction,
 } from "react";
 import { EditorContent, useEditor, Editor } from "@tiptap/react";
-import Toolbar from "./Toolbar";
+import Toolbar from "./toolbar";
 import {
 	extensions,
 	defaultToolbarOptions,
