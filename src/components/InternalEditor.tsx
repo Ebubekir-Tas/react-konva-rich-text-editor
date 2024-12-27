@@ -1,16 +1,15 @@
 import React, { Dispatch, SetStateAction, useRef } from 'react';
-import { EditorContent } from '@tiptap/react';
+import { EditorContent, UseEditorOptions } from '@tiptap/react';
 import Toolbar from './toolbar';
-import { defaultToolbarOptions } from '../constants';
+import { CustomParagraph, defaultToolbarOptions, extensions } from '../constants';
 import { EditorEl } from '../types';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useCustomEditor } from '../hooks/useCustomEditor';
 import { useHandleDrag } from '../hooks/useHandleDrag';
 import { generateSvgFromHtml } from '../utils';
+import { EditorOptions } from '@tiptap/core';
 
 interface InternalEditorProps {
-  text: string;
-  setText: Dispatch<SetStateAction<string>>;
   editorEl: EditorEl;
   setEditorEl: Dispatch<SetStateAction<EditorEl>>;
   setSvgImage: Dispatch<SetStateAction<string>>;
@@ -18,19 +17,21 @@ interface InternalEditorProps {
   editorStyle?: React.CSSProperties;
   toolbarStyle?: React.CSSProperties;
   toolbarOptions?: string[];
+  editorProps?: Partial<EditorOptions>;
+  readOnly?: boolean;
 }
 
-export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
+export const InternalEditor: React.FC<any> = (props) => {
   const {
-    text,
-    setText,
-    editorEl,
-    setEditorEl,
-    setSvgImage,
-    style,
-    toolbarOptions,
-    editorStyle,
-    toolbarStyle,
+		editorEl,
+		setEditorEl,
+		setSvgImage,
+		style,
+		editorStyle,
+		toolbarStyle,
+		toolbarOptions,
+		editorProps = {},
+		readOnly,
   } = props;
 
   const { fontSize = 12 } = editorEl;
@@ -44,10 +45,18 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
     bubbleMenuRef.current = element;
   };
 
+  const editorOptions: UseEditorOptions = {
+    extensions: [...extensions, CustomParagraph],
+    content: editorEl.content,
+    editable: !readOnly,
+    immediatelyRender: true,
+    ...editorProps,
+  }
+
   const editor = useCustomEditor({
     editorEl,
     setSvgImage,
-    editorOptions: {}
+    editorOptions
   });
 
   useClickOutside({
@@ -55,21 +64,20 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
     editorRef,
     bubbleMenuRef,
     onClose: () => {
-      setEditorEl((prev) => ({ ...prev, open: false }));
-      if (editor) {
-        const updatedText = editor.getHTML();
-        setText(updatedText);
-        const svgUrl = generateSvgFromHtml(updatedText, editorEl);
-        setSvgImage(svgUrl);
-      }
+      if (!editor) return;
+      const finalHtml = editor.getHTML()
+      const svgString = generateSvgFromHtml(finalHtml, editorEl, editorStyle);
+
+      setSvgImage(svgString);
+
+      setEditorEl((prev: any) => ({ ...prev, open: false, content: finalHtml }));
     },
   });
 
-  // Use the custom hook for dragging
   const { handleMouseDown } = useHandleDrag({
     editorEl,
     setEditorEl,
-    containerSelector: '.konvajs-content',
+    containerSelector: '.internal-img',
   });
 
   if (!editorEl.open || !editor) {
@@ -80,6 +88,7 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
     <div
       ref={editorRef}
       onMouseDown={handleMouseDown}
+      id=".konvajs-content"
       style={{
         position: 'absolute',
         top: editorEl.y,
