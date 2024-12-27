@@ -2,67 +2,67 @@ import { useState, useEffect, useRef } from "react";
 import { useEditor, Editor } from "@tiptap/react";
 import { generateSvgFromHtml } from "../utils";
 import { extensions, CustomParagraph } from "../constants";
+import { UseEditorOptions } from '@tiptap/react'
 
 interface UseCustomEditorProps {
-	initialText: string;
-	setText: (text: string) => void;
 	editorEl: any;
 	setSvgImage: (url: string) => void;
-	onUpdate?: ({ editor }: { editor: any }) => void;
+	editorOptions: UseEditorOptions;
 }
 
 export function useCustomEditor({
-	initialText,
-	setText,
 	editorEl,
 	setSvgImage,
-	onUpdate,
+	editorOptions,
 }: UseCustomEditorProps) {
 	const [loaded, setLoaded] = useState(false);
 	const previousSvgUrlRef = useRef<string | null>(null);
+	const debounceTimer = useRef<number | null>(null);
 
-	const editor = useEditor({
-		extensions: [...extensions, CustomParagraph],
-		content: initialText,
-		immediatelyRender: true,
-	});
+	const editor = useEditor(editorOptions);
 
 	useEffect(() => {
 		if (!editor) return;
-
+	
 		const updateSvgImage = (html: string) => {
-			const svgUrl = generateSvgFromHtml(html, editorEl);
-
-			if (previousSvgUrlRef.current) {
-				URL.revokeObjectURL(previousSvgUrlRef.current);
-			}
-
-			setSvgImage(svgUrl);
-			previousSvgUrlRef.current = svgUrl;
+		  const svgUrl = generateSvgFromHtml(html, editorEl);
+	
+		  if (previousSvgUrlRef.current) {
+			URL.revokeObjectURL(previousSvgUrlRef.current);
+		  }
+	
+		  setSvgImage(svgUrl);
+		  previousSvgUrlRef.current = svgUrl;
 		};
-
+	
 		if (!loaded) {
-			updateSvgImage(editor.getHTML());
-			setLoaded(true);
+		  updateSvgImage(editor.getHTML());
+		  setLoaded(true);
 		}
-
+	
 		const handleUpdate = ({ editor }: { editor: Editor }) => {
-			const updatedText = editor.getHTML();
-			console.log("updated text", updatedText);
-			setText(updatedText);
-			updateSvgImage(updatedText);
+		  const updatedHtml = editor.getHTML();
+		  console.log("updated text", updatedHtml);
+	
+		  if (debounceTimer.current) clearTimeout(debounceTimer.current);
+	
+		  debounceTimer.current = setTimeout(() => {
+			updateSvgImage(updatedHtml);
+		  }, 500);
 		};
-
+	
 		editor.on("update", handleUpdate);
-
+	
 		return () => {
-			editor.off("update", handleUpdate);
-
-			if (previousSvgUrlRef.current) {
-				URL.revokeObjectURL(previousSvgUrlRef.current);
-			}
+		  editor.off("update", handleUpdate);
+	
+		  if (previousSvgUrlRef.current) {
+			URL.revokeObjectURL(previousSvgUrlRef.current);
+		  }
+	
+		  if (debounceTimer.current) clearTimeout(debounceTimer.current);
 		};
-	}, [editor, loaded]);
+	  }, [editor, loaded]);
 
 	return editor;
 }

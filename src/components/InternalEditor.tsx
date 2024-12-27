@@ -2,7 +2,7 @@ import React, { Dispatch, SetStateAction, useRef } from 'react';
 import { EditorContent } from '@tiptap/react';
 import Toolbar from './toolbar';
 import { defaultToolbarOptions } from '../constants';
-import { InternalEditorEl } from '../types';
+import { EditorEl } from '../types';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useCustomEditor } from '../hooks/useCustomEditor';
 import { useHandleDrag } from '../hooks/useHandleDrag';
@@ -11,8 +11,8 @@ import { generateSvgFromHtml } from '../utils';
 interface InternalEditorProps {
   text: string;
   setText: Dispatch<SetStateAction<string>>;
-  editorEl: InternalEditorEl;
-  setEditorEl: Dispatch<SetStateAction<InternalEditorEl>>;
+  editorEl: EditorEl;
+  setEditorEl: Dispatch<SetStateAction<EditorEl>>;
   setSvgImage: Dispatch<SetStateAction<string>>;
   style?: React.CSSProperties;
   editorStyle?: React.CSSProperties;
@@ -45,10 +45,9 @@ export const InternalEditor: React.FC<InternalEditorProps> = (props) => {
   };
 
   const editor = useCustomEditor({
-    initialText: text,
-    setText,
     editorEl,
     setSvgImage,
+    editorOptions: {}
   });
 
   useClickOutside({

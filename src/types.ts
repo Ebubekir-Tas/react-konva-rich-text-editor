@@ -4,13 +4,6 @@ export interface EditorEl {
   width: number;
   height: number;
   fontSize?: number;
+  content: string;
+  open?: boolean;
 }
-
-interface InteractiveEditorEl extends EditorEl {
-  open: boolean;
-}
-
-export type InlineEditorEl = InteractiveEditorEl;
-export type InternalEditorEl = InteractiveEditorEl;
-
-export type ExternalEditorEl = EditorEl;

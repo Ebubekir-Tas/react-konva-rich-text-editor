@@ -1,40 +1,41 @@
 import React, { useRef, CSSProperties, Dispatch, SetStateAction } from "react";
 import { EditorContent } from "@tiptap/react";
 import Toolbar from "./toolbar";
-import { InlineEditorEl } from "../types";
+import { EditorEl } from "../types";
 import { generateSvgFromHtml } from "../utils";
 import { useClickOutside } from "../hooks/useClickOutside";
 import { defaultToolbarOptions } from "../constants";
-import { useCustomEditor } from "../hooks/useCustomEditor";
 import { useHandleDrag } from "../hooks/useHandleDrag";
+import { extensions, CustomParagraph } from "../constants";
+import { EditorOptions } from '@tiptap/core';
+import { UseEditorOptions } from '@tiptap/react'
+import { useCustomEditor } from "../hooks/useCustomEditor";
 
 interface InlineEditorProps {
-	text: string;
-	setText: Dispatch<SetStateAction<string>>;
-	editorEl: InlineEditorEl;
-	setEditorEl: Dispatch<SetStateAction<InlineEditorEl>>;
-	setSvgImage: Dispatch<SetStateAction<string>>;
-	style?: CSSProperties;
-	editorStyle?: React.CSSProperties;
-	toolbarStyle?: React.CSSProperties;
-	toolbarOptions?: string[];
-	initialText: string;
-	svgImage: any;
+  editorEl: EditorEl
+  setEditorEl: Dispatch<SetStateAction<EditorEl>>
+  svgImage: string
+  setSvgImage: Dispatch<SetStateAction<string>>
+
+  editorProps?: Partial<EditorOptions>
+  readOnly?: boolean
+  editorStyle?: React.CSSProperties
+  toolbarStyle?: React.CSSProperties
+  toolbarOptions?: string[]
+  style?: CSSProperties
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	const {
-		text,
-		setText,
-		svgImage,
-		setSvgImage,
-		style,
-		toolbarOptions,
 		editorEl,
 		setEditorEl,
-		toolbarStyle,
+		setSvgImage,
+		style,
 		editorStyle,
-		initialText,
+		toolbarStyle,
+		toolbarOptions,
+		editorProps = {},
+		readOnly,
 	} = props;
 
 	const { handleMouseDown } = useHandleDrag({
@@ -52,9 +53,16 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	const bubbleMenuRef = useRef<HTMLElement | null>(null);
 
 
+	const editorOptions: UseEditorOptions = {
+		extensions: [...extensions, CustomParagraph],
+		content: editorEl.content,
+		editable: !readOnly,
+		immediatelyRender: true,
+		...editorProps,
+	}
+
 	const editor = useCustomEditor({
-		initialText: text,
-		setText,
+		editorOptions,
 		editorEl,
 		setSvgImage,
 	});
@@ -64,17 +72,14 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		editorRef,
 		bubbleMenuRef,
 		onClose: () => {
-			const svgString = generateSvgFromHtml(editor.getHTML(), editorEl);
-			console.log('Generated SVG String:', svgString);
+			if (!editor) return;
+			console.log("click outside")
+			const finalHtml = editor.getHTML()
+			const svgString = generateSvgFromHtml(finalHtml, editorEl, editorStyle);
 
-			// Create Blob and generate Blob URL
-			const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-			const svgUrl = URL.createObjectURL(svgBlob);
+			setSvgImage(svgString);
 
-			// Update state
-			setText(editor.getHTML());
-			setSvgImage(svgUrl);
-			setEditorEl((prev) => ({ ...prev, open: false }));
+			setEditorEl((prev) => ({ ...prev, open: false, content: finalHtml }));
 		},
 	});
 
@@ -117,8 +122,9 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 						padding: 0,
 						boxSizing: "border-box",
 						cursor: "text",
-						lineHeight: 1,
+						lineHeight: 1.2,
 						verticalAlign: "top",
+						fontFamily: 'Arial',
 						...editorStyle,
 					}}
 				/>

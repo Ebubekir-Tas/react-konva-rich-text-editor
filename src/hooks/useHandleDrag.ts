@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { InternalEditorEl } from '../types';
+import { EditorEl } from '../types';
 interface UseHandleDragProps {
-  editorEl: InternalEditorEl;
-  setEditorEl: React.Dispatch<React.SetStateAction<InternalEditorEl>>;
+  editorEl: EditorEl ;
+  setEditorEl: React.Dispatch<React.SetStateAction<EditorEl >>;
   containerSelector?: string;
 }
 

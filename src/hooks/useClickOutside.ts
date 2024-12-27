@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 interface UseClickOutsideProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   editorRef: React.RefObject<HTMLDivElement>;
   bubbleMenuRef: React.RefObject<HTMLElement | null>;
   onClose: () => void;

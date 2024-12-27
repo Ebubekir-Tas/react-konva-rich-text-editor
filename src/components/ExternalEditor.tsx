@@ -12,11 +12,11 @@ import {
 	defaultToolbarOptions,
 	CustomParagraph,
 } from "../constants";
-import { ExternalEditorEl } from "../types";
+import { EditorEl } from "../types";
 
 export interface ExternalEditorProps {
-	initialText: string;
-	editorEl: ExternalEditorEl;
+	editorEl: EditorEl;
+	setEditorEl: Dispatch<SetStateAction<EditorEl>>;
 	setSvgImage: Dispatch<SetStateAction<string>>;
 	style?: React.CSSProperties;
 	editorStyle?: React.CSSProperties;
@@ -26,8 +26,8 @@ export interface ExternalEditorProps {
 
 export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 	const {
-		initialText,
 		editorEl,
+		setEditorEl,
 		setSvgImage,
 		style,
 		toolbarOptions,
@@ -56,11 +56,9 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 		return URL.createObjectURL(svgBlob);
 	};
 
-	const [text, setText] = useState(initialText);
-
 	const editor = useEditor({
 		extensions: [...extensions, CustomParagraph],
-		content: text,
+		content: editorEl.content,
 	});
 
 	const [loaded, setLoaded] = useState(false);
@@ -76,7 +74,10 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 
 		const handleUpdate = ({ editor }: { editor: Editor }) => {
 			const svgUrl = updateSvg(editor.getHTML());
-			setText(editor.getHTML());
+			setEditorEl((prev) => ({
+				...prev,
+				content: editor.getHTML(),
+			}))
 			setSvgImage(svgUrl);
 		};
 
@@ -87,7 +88,7 @@ export const ExternalEditor: React.FC<ExternalEditorProps> = (props) => {
 				editor.off("update", handleUpdate);
 			}
 		};
-	}, [editor, setSvgImage, updateSvg, setText, loaded]);
+	}, [editor, setSvgImage, updateSvg, loaded]);
 
 	const options = (toolbarOptions && toolbarOptions.length > 0) ? toolbarOptions : defaultToolbarOptions;
 
