@@ -31,7 +31,6 @@ const RemoteEditor: React.FC<RemoteEditorProps> = (props) => {
 
 	const bubbleMenuRef = useRef<HTMLElement | null>(null);
 
-
 	const editorOptions: UseEditorOptions = {
 		extensions: [...extensions, CustomParagraph],
 		content: editorEl.content,

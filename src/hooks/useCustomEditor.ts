@@ -43,8 +43,6 @@ export function useCustomEditor({
 
 		const handleUpdate = ({ editor }: { editor: Editor }) => {
 			const updatedHtml = editor.getHTML();
-			console.log("updated text", updatedHtml);
-
 			if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
 			debounceTimer.current = setTimeout(() => {
