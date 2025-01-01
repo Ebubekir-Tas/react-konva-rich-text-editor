@@ -1,16 +1,21 @@
-import { useState, useEffect, useRef } from "react";
-import type { CSSProperties, Dispatch, SetStateAction } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { InlineEditor } from "./InlineEditor";
 import { Html } from "../html";
 import { generateSvgFromHtml } from "../utils";
-import { EditorProps } from "../types";
+import { EditorProps, EditorEl } from "../types";
 
-import { Rect } from "react-konva";
+import { Image as KonvaImage } from "react-konva";
 import type { Image as KonvaImageType } from "konva/lib/shapes/Image";
-import { Image } from "react-konva";
-import { RichText } from "./RichText";
 
-const RichTextEditor = (props: EditorProps) => {
+interface RichTextEditorProps extends EditorProps {
+	imageRef?: React.RefObject<KonvaImageType>;
+}
+
+export type RichTextEditorRef = KonvaImageType & {
+	redraw: () => void;
+};
+
+const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
 	const {
 		editorEl,
 		setEditorEl,
@@ -18,21 +23,16 @@ const RichTextEditor = (props: EditorProps) => {
 		toolbarStyle,
 		readOnly,
 		editorProps = {},
-		svgImage: propsSvgImage,
-		setSvgImage: propsSetSvgImage,
 		toolbarOptions,
 		style,
 		...rest
 	} = props;
 
-	const [svgImage, setSvgImage] = useState("");
+	const [svgImage, setSvgImage] = useState<string>("");
 
-	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(
-		null
-	);
+	const [konvaImageNode, setKonvaImageNode] = useState<KonvaImageType | null>(null);
 
-	const [parentContainer, setParentContainer] = useState(null);
-	const [isSelected, setIsSelected] = useState(false);
+	const [parentContainer, setParentContainer] = useState<HTMLElement | null>(null);
 
 	useEffect(() => {
 		if (!editorEl.open && !svgImage) {
@@ -48,7 +48,6 @@ const RichTextEditor = (props: EditorProps) => {
 				const stageContainer = stage.container() as HTMLElement;
 				if (stageContainer) {
 					stageContainer.style.position = "relative";
-					// @ts-ignore
 					setParentContainer(stageContainer);
 				}
 			}
@@ -61,7 +60,7 @@ const RichTextEditor = (props: EditorProps) => {
 			width: konvaImageNode.width(),
 			height: konvaImageNode.height(),
 		};
-		setEditorEl((prev) => ({
+		setEditorEl((prev: EditorEl) => ({
 			...prev,
 			open: true,
 			...imageSize,
@@ -69,11 +68,7 @@ const RichTextEditor = (props: EditorProps) => {
 	};
 
 
-	const internalImageRef = useRef<KonvaImageType | null>(null);
-	const previousUrlRef = useRef<string | null>(null);
-	const [imageElement, setImageElement] = useState<CanvasImageSource | undefined>(
-		undefined
-	);
+	const [imageElement, setImageElement] = useState<CanvasImageSource | undefined>(undefined);
 
 	useEffect(() => {
 		if (svgImage) {
@@ -91,13 +86,7 @@ const RichTextEditor = (props: EditorProps) => {
 			};
 
 			return () => {
-				if (
-					previousUrlRef.current &&
-					previousUrlRef.current.startsWith("blob:")
-				) {
-					URL.revokeObjectURL(previousUrlRef.current);
-					previousUrlRef.current = null;
-				}
+				// Cleanup if needed
 			};
 		} else {
 			setImageElement(undefined);
@@ -105,41 +94,56 @@ const RichTextEditor = (props: EditorProps) => {
 	}, [svgImage]);
 
 	useEffect(() => {
-		if (internalImageRef.current && imageElement) { 
-			internalImageRef.current.image(imageElement);
-			internalImageRef.current.getLayer()?.batchDraw();
+		if (konvaImageNode && imageElement) {
+			konvaImageNode.image(imageElement);
+			konvaImageNode.getLayer()?.batchDraw();
 		}
-	}, [imageElement]);
+	}, [imageElement, konvaImageNode]);
+
+	useImperativeHandle(
+		ref,
+		() => {
+			if (!konvaImageNode) {
+				return {
+					redraw: () => {
+						console.warn("Cannot call redraw; KonvaImageNode is not initialized.");
+					},
+				} as KonvaImageType & { redraw: () => void };
+			}
+
+			return Object.assign({}, konvaImageNode, {
+				redraw: () => {
+					// Your redraw logic
+					const newSvg = generateSvgFromHtml(editorEl.content, editorEl, editorStyle);
+					setSvgImage(newSvg);
+
+					konvaImageNode.x(editorEl.x);
+					konvaImageNode.y(editorEl.y);
+					konvaImageNode.width(editorEl.width);
+					konvaImageNode.height(editorEl.height);
+					konvaImageNode.getLayer()?.batchDraw();
+				},
+			});
+		},
+		[konvaImageNode, editorEl, editorStyle]
+	);
 
 	return (
 		<>
-
-			<Image
+			<KonvaImage
+				image={imageElement}
 				visible={!editorEl.open}
 				onDblClick={inlineDblClick}
 				listening={!editorEl.open}
 				ref={(node) => {
-					internalImageRef.current = node;
-					if (node) {
-						setKonvaImageNode?.(node);
+					if (ref && typeof ref === "object" && ref !== null) {
+						// Forward the ref to the parent
+						(ref as React.MutableRefObject<KonvaImageType | null>).current = node;
 					}
+					setKonvaImageNode(node);
 				}}
 				{...rest}
 			/>
-
-			{isSelected && !editorEl.open && (
-				<>
-					<Rect
-						x={editorEl.x}
-						y={editorEl.y}
-						width={editorEl.width}
-						height={editorEl.height}
-						stroke="blue"
-						strokeWidth={1}
-						listening={false}
-					/>
-				</>
-			)}
 
 			{editorEl.open && parentContainer && (
 				<Html container={parentContainer}>
@@ -164,6 +168,8 @@ const RichTextEditor = (props: EditorProps) => {
 			)}
 		</>
 	);
-};
+});
+
+RichTextEditor.displayName = "RichTextEditor";
 
 export { RichTextEditor };

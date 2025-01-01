@@ -1,28 +1,16 @@
-import React, { useRef, CSSProperties, Dispatch, SetStateAction } from "react";
-import { EditorContent } from "@tiptap/react";
+import React, { useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { EditorContent, UseEditorOptions } from "@tiptap/react";
 import Toolbar from "./toolbar";
-import { EditorEl } from "../types";
+import { EditorProps } from "../types";
 import { generateSvgFromHtml } from "../utils";
-import { useClickOutside } from "../hooks/useClickOutside";
-import { defaultToolbarOptions } from "../constants";
-import { useHandleDrag } from "../hooks/useHandleDrag";
-import { extensions, CustomParagraph } from "../constants";
-import { EditorOptions } from '@tiptap/core';
-import { UseEditorOptions } from '@tiptap/react'
+import { extensions, CustomParagraph, defaultToolbarOptions } from "../constants";
 import { useCustomEditor } from "../hooks/useCustomEditor";
+import { useClickOutside } from "../hooks/useClickOutside";
 
-interface InlineEditorProps {
-  editorEl: EditorEl
-  setEditorEl: Dispatch<SetStateAction<EditorEl>>
-  svgImage: string
-  setSvgImage: Dispatch<SetStateAction<string>>
-
-  editorProps?: Partial<EditorOptions>
-  readOnly?: boolean
-  editorStyle?: React.CSSProperties
-  toolbarStyle?: React.CSSProperties
-  toolbarOptions?: string[]
-  style?: CSSProperties
+interface InlineEditorProps extends EditorProps {
+	svgImage: string;
+	setSvgImage: Dispatch<SetStateAction<string>>;
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
@@ -38,12 +26,6 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		readOnly,
 	} = props;
 
-	const { handleMouseDown } = useHandleDrag({
-		editorEl,
-		setEditorEl,
-		containerSelector: '.konvajs-content',
-	});
-
 	const options =
 		toolbarOptions && toolbarOptions.length > 0
 			? toolbarOptions
@@ -51,7 +33,6 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 
 	const editorRef = useRef<HTMLDivElement | null>(null);
 	const bubbleMenuRef = useRef<HTMLElement | null>(null);
-
 
 	const editorOptions: UseEditorOptions = {
 		extensions: [...extensions, CustomParagraph],
@@ -62,9 +43,9 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	}
 
 	const editor = useCustomEditor({
-		editorOptions,
 		editorEl,
 		setSvgImage,
+		editorOptions
 	});
 
 	useClickOutside({
@@ -73,7 +54,6 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		bubbleMenuRef,
 		onClose: () => {
 			if (!editor) return;
-			console.log("click outside")
 			const finalHtml = editor.getHTML()
 			const svgString = generateSvgFromHtml(finalHtml, editorEl, editorStyle);
 
@@ -94,7 +74,6 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	return (
 		<div
 			ref={editorRef}
-			onMouseDown={handleMouseDown}
 			style={{
 				...style,
 				top: editorEl.y,

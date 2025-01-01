@@ -29,9 +29,8 @@ export const generateSvgFromHtml = (
     .join(' ');
 
   const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${editorEl.width}" height="${
-    editorEl.height
-  }" viewBox="0 0 ${editorEl.width} ${editorEl.height}" preserveAspectRatio="none">
+    <svg xmlns="http://www.w3.org/2000/svg" width="${editorEl.width}" height="${editorEl.height
+    }" viewBox="0 0 ${editorEl.width} ${editorEl.height}" preserveAspectRatio="none">
       <foreignObject width="100%" height="100%">
         <div xmlns="http://www.w3.org/1999/xhtml" style="${inlineStyle}">
           <style>

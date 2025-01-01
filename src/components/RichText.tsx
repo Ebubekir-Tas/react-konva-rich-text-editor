@@ -1,87 +1,71 @@
-import React from 'react';
-import Image from './KonvaImage';
-import { EditorEl } from '../types';
-import { EditorOptions } from '@tiptap/core';
+import { useRef, useState, useEffect } from "react";
+import { Image as KonvaImage } from "react-konva";
+import { Image as KonvaImageType } from "konva/lib/shapes/Image";
 
-type EditorType = 'inline' | 'internal' | 'external';
 
-interface RichTextProps {
-  editorType?: EditorType;
+import { RichTextProps } from "../types";
 
-  editorEl: EditorEl;
-  setEditorEl: React.Dispatch<
-    React.SetStateAction<EditorEl>
-  >;
+const RichText: React.FC<RichTextProps> = ({
+	svgImage,
+	handleDblClick,
+	setKonvaImageNode,
+	...restProps
+}) => {
+	const internalImageRef = useRef<KonvaImageType | null>(null);
+	const previousUrlRef = useRef<string | null>(null);
+	const [imageElement, setImageElement] = useState<HTMLImageElement | null>(
+		null
+	);
 
-  editorProps?: Partial<EditorOptions>
+	useEffect(() => {
+		if (svgImage) {
+			console.log("Loading image from svgImage:", svgImage);
+			const img = new window.Image();
+			img.src = svgImage;
 
-  readOnly?: boolean;
-  placeholder?: string;
-  draggable?: boolean;
-  editorStyle?: React.CSSProperties;
-  toolbarStyle?: React.CSSProperties;
-  [key: string]: any;
-}
+			img.onload = () => {
+				console.log("Image loaded successfully");
+				setImageElement(img);
+			};
 
-export function RichText({
-  editorType = 'inline',
-  editorEl,
-  setEditorEl,
-  editorProps,
-  readOnly = false,
-  placeholder,
-  draggable = false,
-  editorStyle,
-  toolbarStyle,
-  ...restProps
-}: RichTextProps) {
-  // Decide which "editor + image" to render
-  switch (editorType) {
-    case 'internal':
-      return (
-        //@ts-ignore
-        <Image.Internal
-          editorEl={editorEl}
-          setEditorEl={setEditorEl}
+			img.onerror = (e) => {
+				console.error("Failed to load image:", svgImage, e);
+			};
 
-          readOnly={readOnly}
-          placeholder={placeholder}
-          editorStyle={editorStyle}
-          toolbarStyle={toolbarStyle}
-          draggable={draggable}
-          {...restProps}
-        />
-      );
+			return () => {
+				if (
+					previousUrlRef.current &&
+					previousUrlRef.current.startsWith("blob:")
+				) {
+					URL.revokeObjectURL(previousUrlRef.current);
+					previousUrlRef.current = null;
+				}
+			};
+		} else {
+			setImageElement(null);
+		}
+	}, [svgImage]);
 
-    case 'external':
-      return (
-        //@ts-ignore
-        <Image.External
-          editorEl={editorEl}
-          setEditorEl={setEditorEl}
-          readOnly={readOnly}
-          placeholder={placeholder}
-          editorStyle={editorStyle}
-          toolbarStyle={toolbarStyle}
-          draggable={draggable}
-          {...restProps}
-        />
-      );
+	useEffect(() => {
+		if (internalImageRef.current && imageElement) {
+			internalImageRef.current.image(imageElement);
+			internalImageRef.current.getLayer()?.batchDraw();
+		}
+	}, [imageElement]);
 
-    case 'inline':
-    default:
-      return (
-        <Image.Inline
-          editorEl={editorEl}
-          setEditorEl={setEditorEl}
-          editorProps={editorProps}
-          readOnly={readOnly}
-          placeholder={placeholder}
-          editorStyle={editorStyle}
-          toolbarStyle={toolbarStyle}
-          draggable={draggable}
-          {...restProps}
-        />
-      );
-  }
-}
+	return (
+		//@ts-ignore
+		<KonvaImage
+			ref={(node) => {
+				internalImageRef.current = node;
+				if (node) {
+					setKonvaImageNode?.(node);
+				}
+			}}
+			onDblClick={handleDblClick}
+			{...restProps}
+		/>
+	);
+};
+
+export { RichText }
