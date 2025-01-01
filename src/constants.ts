@@ -10,6 +10,7 @@ import Color from "@tiptap/extension-color";
 import TextStyle from "@tiptap/extension-text-style";
 import History from '@tiptap/extension-history';
 
+import type { ToolbarOption } from "./types";
 export const CustomParagraph = Paragraph.extend({
   addAttributes() {
     return {
@@ -39,7 +40,7 @@ export const extensions = [
 ];
 
 
-export const defaultToolbarOptions = [
+export const defaultToolbarOptions: ToolbarOption[] = [
   'undo',
   'redo',
   'bold',
@@ -49,3 +50,4 @@ export const defaultToolbarOptions = [
   'fontFamily',
   'color',
 ];
+
