@@ -2,15 +2,16 @@ import React, { useCallback } from 'react';
 import { BubbleMenu, Editor } from '@tiptap/react';
 import { createGlobalStyle } from 'styled-components';
 import * as Icons from '../icons';
+import type { ToolbarOption } from '../types';
 
 interface ToolbarProps {
   editor: Editor;
-  options?: string[];
+  options?: ToolbarOption[];
   setBubbleMenuElement: (element: HTMLElement) => void;
   toolbarStyle?: React.CSSProperties;
 }
 
-const GlobalStyles = createGlobalStyle`
+const Styles = createGlobalStyle`
   .tippy-box[data-theme~='bubble-menu'] {
     background-color: #313639;
     border-radius: 4px;
@@ -220,7 +221,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <>
-      <GlobalStyles />
+      <Styles />
       <BubbleMenu
         editor={editor}
         pluginKey="bubbleMenuText"
