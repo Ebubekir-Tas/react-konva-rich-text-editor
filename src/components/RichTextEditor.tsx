@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { InlineEditor } from "./InlineEditor";
 import { Html } from "../html";
 import { generateSvgFromHtml } from "../utils";
@@ -7,15 +7,11 @@ import { EditorProps, EditorEl } from "../types";
 import { Image as KonvaImage } from "react-konva";
 import type { Image as KonvaImageType } from "konva/lib/shapes/Image";
 
-interface RichTextEditorProps extends EditorProps {
-	imageRef?: React.RefObject<KonvaImageType>;
-}
-
 export type RichTextEditorRef = KonvaImageType & {
 	redraw: () => void;
 };
 
-const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
+const RichTextEditor = forwardRef<RichTextEditorRef, EditorProps>((props, ref) => {
 	const {
 		editorEl,
 		setEditorEl,
@@ -27,6 +23,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>((props
 		style,
 		...rest
 	} = props;
+
+	const konvaRef = useRef<KonvaImageType | null>(null);
 
 	const [svgImage, setSvgImage] = useState<string>("");
 
@@ -86,7 +84,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>((props
 			};
 
 			return () => {
-				// Cleanup if needed
+				// Cleanup
 			};
 		} else {
 			setImageElement(undefined);
@@ -113,7 +111,6 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>((props
 
 			return Object.assign({}, konvaImageNode, {
 				redraw: () => {
-					// Your redraw logic
 					const newSvg = generateSvgFromHtml(editorEl.content, editorEl, editorStyle);
 					setSvgImage(newSvg);
 
@@ -128,6 +125,32 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>((props
 		[konvaImageNode, editorEl, editorStyle]
 	);
 
+
+  useImperativeHandle(ref, () => {
+    if (!konvaRef.current) {
+      return {
+        redraw: () => {
+          console.warn("Cannot call redraw; KonvaImageNode is not initialized.");
+        },
+        getStage: () => null,
+      } as unknown as KonvaImageType & { redraw: () => void };
+    }
+
+    return Object.assign({}, konvaRef.current, {
+      redraw: () => {
+				if (!konvaRef.current) return;
+				const newSvg = generateSvgFromHtml(editorEl.content, editorEl, editorStyle);
+				setSvgImage(newSvg);
+
+				konvaRef.current.x(editorEl.x);
+				konvaRef.current.y(editorEl.y);
+				konvaRef.current.width(editorEl.width);
+				konvaRef.current.height(editorEl.height);
+				konvaRef.current.getLayer()?.batchDraw();
+			},
+    });
+  }, [konvaImageNode, editorEl, editorStyle]);
+
 	return (
 		<>
 			<KonvaImage
@@ -135,13 +158,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>((props
 				visible={!editorEl.open}
 				onDblClick={inlineDblClick}
 				listening={!editorEl.open}
-				ref={(node) => {
-					if (ref && typeof ref === "object" && ref !== null) {
-						// Forward the ref to the parent
-						(ref as React.MutableRefObject<KonvaImageType | null>).current = node;
-					}
-					setKonvaImageNode(node);
-				}}
+				ref={konvaRef}
 				{...rest}
 			/>
 

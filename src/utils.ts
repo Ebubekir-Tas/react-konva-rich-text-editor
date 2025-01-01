@@ -27,7 +27,6 @@ export const generateSvgFromHtml = (
   const inlineStyle = Object.entries(mergedStyle)
     .map(([key, value]) => `${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}: ${value};`)
     .join(' ');
-
   const svgString = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${editorEl.width}" height="${editorEl.height
     }" viewBox="0 0 ${editorEl.width} ${editorEl.height}" preserveAspectRatio="none">
