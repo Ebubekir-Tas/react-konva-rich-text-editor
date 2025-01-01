@@ -11,6 +11,7 @@ import { useClickOutside } from "../hooks/useClickOutside";
 interface InlineEditorProps extends EditorProps {
 	svgImage: string;
 	setSvgImage: Dispatch<SetStateAction<string>>;
+	handleEditorClose: (html: string) => void;
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
@@ -24,6 +25,7 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		toolbarOptions,
 		editorProps = {},
 		readOnly,
+		handleEditorClose,
 	} = props;
 
 	const options =
@@ -55,11 +57,8 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		onClose: () => {
 			if (!editor) return;
 			const finalHtml = editor.getHTML()
-			const svgString = generateSvgFromHtml(finalHtml, editorEl, editorStyle);
-
-			setSvgImage(svgString);
-
 			setEditorEl((prev) => ({ ...prev, open: false, content: finalHtml }));
+			handleEditorClose(finalHtml);
 		},
 	});
 
