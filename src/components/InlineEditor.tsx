@@ -41,6 +41,11 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 		content: editorEl.content,
 		editable: !readOnly,
 		immediatelyRender: true,
+		editorProps: {
+			attributes: {
+				style: 'color: black;'
+			}
+		},
 		...editorProps,
 	}
 

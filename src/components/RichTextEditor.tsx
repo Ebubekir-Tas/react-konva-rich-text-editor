@@ -170,6 +170,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, EditorProps>(
 					onDblClick={inlineDblClick}
 					listening={!editorEl.open}
 					ref={(node) => setKonvaImageNode(node)}
+					x={editorEl.x}
+					y={editorEl.y}
 					{...rest}
 				/>
 
