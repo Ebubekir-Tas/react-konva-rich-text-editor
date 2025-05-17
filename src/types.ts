@@ -1,6 +1,6 @@
 import type { Image as KonvaImageType, ImageConfig } from "konva/lib/shapes/Image";
 import type { CSSProperties, Dispatch, SetStateAction } from "react";
-import type { EditorOptions } from '@tiptap/core';
+import type { UseEditorOptions } from '@tiptap/react';
 
 export interface EditorEl {
   x: number;
@@ -31,7 +31,7 @@ export type ToolbarOption =
 export interface EditorProps {
   editorEl: EditorEl;
   setEditorEl: Dispatch<SetStateAction<EditorEl>>;
-  editorProps?: Partial<EditorOptions>;
+  editorProps?: UseEditorOptions;
 
   editorStyle?: CSSProperties;
   toolbarStyle?: CSSProperties;
