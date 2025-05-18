@@ -6,7 +6,7 @@ import postcss from 'rollup-plugin-postcss';
 import image from '@rollup/plugin-image';
 import url from '@rollup/plugin-url';
 import svgr from '@svgr/rollup';
-import pkg from './package.json' assert { type: 'json' };
+import pkg from './package.json' with { type: 'json' };
 import postcssImport from 'postcss-import';
 
 export default {

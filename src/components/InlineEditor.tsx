@@ -1,131 +1,75 @@
-import React, {
-	useState,
-	useEffect,
-	useRef,
-	CSSProperties,
-	Dispatch,
-	SetStateAction,
-} from "react";
-import { EditorContent, useEditor, Editor } from "@tiptap/react";
-import Toolbar from "./Toolbar";
-import {
-	extensions,
-	defaultToolbarOptions,
-	CustomParagraph,
-} from "../constants";
-import { InlineEditorEl } from "../types";
-import { generateSvgFromHtml } from "../utilts";
+import React, { useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { EditorContent, UseEditorOptions } from "@tiptap/react";
+import Toolbar from "./toolbar";
+import { EditorProps } from "../types";
+import { generateSvgFromHtml } from "../utils";
+import { extensions, CustomParagraph, defaultToolbarOptions } from "../constants";
+import { useCustomEditor } from "../hooks/useCustomEditor";
+import { useClickOutside } from "../hooks/useClickOutside";
 
-interface InlineEditorProps {
-	text: string;
-	setText: Dispatch<SetStateAction<string>>;
-	editorEl: InlineEditorEl;
-	setEditorEl: Dispatch<SetStateAction<InlineEditorEl>>;
+interface InlineEditorProps extends EditorProps {
+	svgImage: string;
 	setSvgImage: Dispatch<SetStateAction<string>>;
-	style?: CSSProperties;
-	editorStyle?: React.CSSProperties;
-	toolbarStyle?: React.CSSProperties;
-	toolbarOptions?: string[];
+	handleEditorClose: (html: string) => void;
 }
 
 export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 	const {
-		text,
-		setText,
-		setSvgImage,
-		style,
-		toolbarOptions,
 		editorEl,
 		setEditorEl,
-		toolbarStyle,
+		setSvgImage,
+		style,
 		editorStyle,
+		toolbarStyle,
+		toolbarOptions,
+		editorProps = {},
+		readOnly,
+		handleEditorClose,
 	} = props;
 
-	const options = (toolbarOptions && toolbarOptions.length > 0) ? toolbarOptions : defaultToolbarOptions;
-
-	const previousSvgUrlRef = useRef<string | null>(null);
-
-	useEffect(() => {
-		return () => {
-			if (previousSvgUrlRef.current) {
-				URL.revokeObjectURL(previousSvgUrlRef.current);
-			}
-		};
-	}, []);
-
-	const isFirstUpdate = useRef(true);
-
-	const editor = useEditor({
-		extensions: [...extensions, CustomParagraph],
-		content: text,
-		onUpdate: ({ editor }) => {
-			if (isFirstUpdate.current) {
-				isFirstUpdate.current = false;
-				return;
-			}
-			const svgUrl = generateSvgFromHtml(editor.getHTML(), editorEl);
-			setText(editor.getHTML());
-			setSvgImage(svgUrl);
-		},
-	});
+	const options =
+		toolbarOptions && toolbarOptions.length > 0
+			? toolbarOptions
+			: defaultToolbarOptions;
 
 	const editorRef = useRef<HTMLDivElement | null>(null);
 	const bubbleMenuRef = useRef<HTMLElement | null>(null);
-	const [loaded, setLoaded] = useState(false);
 
-	useEffect(() => {
-		if (editor) {
-			if (!loaded) {
-				const svgUrl = generateSvgFromHtml(editor.getHTML(), editorEl);
-				setSvgImage(svgUrl);
-				setLoaded(true);
+	const editorOptions: UseEditorOptions = {
+		extensions: [...extensions, CustomParagraph],
+		content: editorEl.content,
+		editable: !readOnly,
+		immediatelyRender: true,
+		editorProps: {
+			attributes: {
+				style: 'color: black;'
 			}
+		},
+		...editorProps,
+	}
 
-			const handleUpdate = ({ editor }: { editor: Editor }) => {
-				const updatedText = editor.getHTML();
-				setText(updatedText);
-				const svgUrl = generateSvgFromHtml(updatedText, editorEl);
-				setSvgImage(svgUrl);
-			};
+	const editor = useCustomEditor({
+		editorEl,
+		setSvgImage,
+		editorOptions
+	});
 
-			editor.on("update", handleUpdate);
-			return () => {
-				editor.off("update", handleUpdate);
-			};
-		}
-	}, [editor, setSvgImage, generateSvgFromHtml, loaded]);
+	useClickOutside({
+		isOpen: editorEl.open,
+		editorRef,
+		bubbleMenuRef,
+		onClose: () => {
+			if (!editor) return;
+			const finalHtml = editor.getHTML()
+			setEditorEl((prev) => ({ ...prev, open: false, content: finalHtml }));
+			handleEditorClose(finalHtml);
+		},
+	});
 
 	const setBubbleMenuElement = (element: HTMLElement) => {
 		bubbleMenuRef.current = element;
 	};
-
-	useEffect(() => {
-		if (editorEl.open) {
-			const handleClickOutside = (event: MouseEvent) => {
-				const clickedOutsideEditor =
-					editorRef.current &&
-					!editorRef.current.contains(event.target as Node) &&
-					(!bubbleMenuRef.current ||
-						!bubbleMenuRef.current.contains(event.target as Node));
-
-				if (clickedOutsideEditor) {
-					setEditorEl((prev) => ({ ...prev, open: false }));
-					if (editor) {
-						const updatedText = editor.getHTML();
-						setText(updatedText);
-						const svgUrl = generateSvgFromHtml(updatedText, editorEl);
-						setSvgImage(svgUrl);
-					}
-				}
-			};
-
-			document.addEventListener("mousedown", handleClickOutside);
-
-			return () => {
-				document.removeEventListener("mousedown", handleClickOutside);
-			};
-		}
-	}, [editorEl.open, editor, setEditorEl, setSvgImage, generateSvgFromHtml]);
 
 	if (!editorEl.open || !editor) {
 		return null;
@@ -161,8 +105,9 @@ export const InlineEditor: React.FC<InlineEditorProps> = (props) => {
 						padding: 0,
 						boxSizing: "border-box",
 						cursor: "text",
-						lineHeight: 1,
+						lineHeight: 1.2,
 						verticalAlign: "top",
+						fontFamily: 'Arial',
 						...editorStyle,
 					}}
 				/>
